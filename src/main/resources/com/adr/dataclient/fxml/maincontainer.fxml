@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.ChoiceBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.AnchorPane?>
+
+<AnchorPane fx:id="root" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="596.0" prefWidth="921.0" xmlns="http://javafx.com/javafx/8.0.131" xmlns:fx="http://javafx.com/fxml/1">
+   <children>
+      <TabPane layoutX="42.0" layoutY="8.0" prefHeight="385.0" prefWidth="546.0" tabClosingPolicy="UNAVAILABLE" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+        <tabs>
+          <Tab text="Query Links">
+               <content>
+                  <AnchorPane prefHeight="200.0" prefWidth="200.0">
+                     <children>
+                        <ListView layoutX="14.0" layoutY="14.0" prefHeight="535.0" prefWidth="241.0" AnchorPane.bottomAnchor="14.0" AnchorPane.leftAnchor="14.0" AnchorPane.topAnchor="14.0" />
+                        <Label layoutX="275.0" layoutY="22.0" text="Label" />
+                        <TextField layoutX="446.0" layoutY="17.0" prefHeight="26.0" prefWidth="259.0" />
+                        <Label layoutX="275.0" layoutY="70.0" prefHeight="16.0" prefWidth="161.0" text="Tipo" />
+                        <ChoiceBox layoutX="446.0" layoutY="65.0" prefHeight="26.0" prefWidth="255.0" />
+                     </children>
+                  </AnchorPane>
+               </content></Tab>
+          <Tab text="Data Links" />
+            <Tab fx:id="command" text="Command" />
+            <Tab text="Servers">
+              <content>
+                <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0" />
+              </content>
+            </Tab>
+        </tabs>
+      </TabPane>
+   </children>
+</AnchorPane>

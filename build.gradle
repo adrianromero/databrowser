@@ -1,0 +1,60 @@
+//    HelloSample is a client application platform
+//    Copyright (C) 2017 Adrián Romero Corchado.
+//
+//    All Rights reserved..
+
+apply plugin: 'java'
+apply plugin: 'maven'
+apply plugin: 'application'
+
+group = 'com.github.adrianromero'
+version = '1.0.0'
+
+mainClassName = 'com.adr.dataclient.Main'
+
+description = """"""
+
+sourceCompatibility = '1.8'
+targetCompatibility = '1.8'
+[compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
+compileJava {
+    options.compilerArgs << "-Xlint:unchecked" << "-Xlint:deprecation"
+}
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+    maven { url "https://jitpack.io" }
+}
+
+dependencies {
+    compile group: 'postgresql', name: 'postgresql', version: '9.1-901.jdbc4'
+    
+    compile group: 'com.github.adrianromero', name: 'fonticon', version: '1.2.1'
+    compile group: 'com.github.adrianromero', name: 'hellocommon', version: '1.2.5'
+    compile group: 'com.github.adrianromero', name: 'data', version: '1.0.23'
+}
+
+task sourcesJar(type: Jar, dependsOn: classes) {
+    classifier = 'sources'
+    from sourceSets.main.allSource
+}
+
+artifacts {
+    archives sourcesJar
+}
+
+install {
+  repositories.mavenInstaller {
+    pom.project {
+      licenses {
+        license {
+          name 'The Apache Software License, Version 2.0'
+          url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+          distribution 'repo'
+        }
+      }
+    }
+  }
+}
+
