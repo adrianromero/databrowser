@@ -5,14 +5,12 @@
  */
 package com.adr.dataclient;
 
-import java.io.IOException;
-import java.net.URL;
-import java.util.ResourceBundle;
+import com.adr.hellocommon.dialog.MessageUtils;
+import com.adr.hellocommon.utils.FXMLUtil;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.control.Tab;
-import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.StackPane;
 
 /**
  *
@@ -20,26 +18,27 @@ import javafx.scene.layout.AnchorPane;
  */
 public class MainContainer {
     
-    @FXML private AnchorPane root;
+    @FXML private StackPane root;
     @FXML private Tab command;
+    @FXML private Tab datalinks;
     
+    private final Application app;
     private Command commandcontroller;
     
     public MainContainer() {
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/adr/dataclient/fxml/maincontainer.fxml"));
-        loader.setController(this);    
-        try {
-            loader.load();
-        } catch (IOException exception) {
-            throw new RuntimeException(exception);
-        }        
+        this.app = new Application();       
+        FXMLUtil.load(this, "/com/adr/dataclient/fxml/maincontainer.fxml");   
     }
     
     @FXML
     public void initialize() {
+        root.getProperties().put("DialogRoot", true);
         
-        commandcontroller = new Command();
-        command.setContent(commandcontroller.getNode());        
+        commandcontroller = new Command(app);       
+        command.setContent(commandcontroller.getNode());     
+        
+        SytntaxArea area = new SytntaxArea();
+        datalinks.setContent(area.getNode());
     }
     
     public Parent getNode() {

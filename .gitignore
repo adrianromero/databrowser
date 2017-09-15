@@ -5,3 +5,4 @@ target/
 /.nb-gradle/
 /build/
 /private/
+/bin/
