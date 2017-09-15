@@ -61,6 +61,8 @@ public class Command {
     Button actionQuery;
     @FXML
     Button actionFind;
+    @FXML
+    Button actionClear;
 
     private SyntaxArea commandHeader;
     private SyntaxArea commandField;
@@ -85,6 +87,7 @@ public class Command {
         actionExecute.setGraphic(IconBuilder.create(FontAwesome.FA_CLOUD_UPLOAD).build());
         actionQuery.setGraphic(IconBuilder.create(FontAwesome.FA_CLOUD_DOWNLOAD).build());
         actionFind.setGraphic(IconBuilder.create(FontAwesome.FA_SEARCH).build());
+        actionClear.setGraphic(IconBuilder.create(FontAwesome.FA_BAN).build());
 
         commandHeader = new RecordsArea();
         commandHeader.getNode().setMaxHeight(80.0);
@@ -112,6 +115,11 @@ public class Command {
     }
 
     @FXML
+    void onClear(ActionEvent event) {
+        commandOutput.getNode().clear();
+    }
+
+    @FXML
     void onLogin(ActionEvent event) {
         beginTask();
         login("admin", "admin")
@@ -122,9 +130,31 @@ public class Command {
 
     @FXML
     void onLogout(ActionEvent event) {
-        MessageUtils.showInfo(MessageUtils.getRoot(root), "title", "message");
+        commandHeader.getNode().replaceText("");
     }
 
+    @FXML
+    void onCurrentUser(ActionEvent event) {
+        beginTask();
+        current(commandHeader.getNode().getText())
+                .whenComplete(runLater(this::endTask))
+                .thenApply(runLater(this::printCurrentResult))
+                .exceptionally(runLater((Throwable t) -> printException(resources.getString("request.current"), t)));
+    }
+
+    @FXML
+    void onHasAuthorization(ActionEvent event) {
+        beginTask();
+        hasAuthorization(commandHeader.getNode().getText(), "cachelo")
+                .whenComplete(runLater(this::endTask))
+                .thenApply(runLater(this::printHasAuthorizationResult))
+                .exceptionally(runLater((Throwable t) -> printException(resources.getString("request.hasauthorization"), t)));
+    }
+
+//    @FXML
+//    void onLogout(ActionEvent event) {
+//        MessageUtils.showInfo(MessageUtils.getRoot(root), "title", "message");
+//    }
     @FXML
     void onQuery(ActionEvent event) {
         beginTask();
@@ -198,6 +228,32 @@ public class Command {
         }
     }
 
+    private void printCurrentResult(AsyncResult<Record> asyncresult) {
+        try {
+            if (asyncresult.getResult() == null) {
+                commandOutput.getNode().appendText(String.format(resources.getString("result.currentanonymous"), asyncresult.getElapsed().elapsed()));
+                commandOutput.getNode().requestFollowCaret();
+            } else {
+                commandOutput.getNode().appendText(String.format(resources.getString("result.current"), asyncresult.getElapsed().elapsed()));
+                commandOutput.getNode().appendText(RecordsSerializer.write(asyncresult.getResult()) + "\n");
+                commandOutput.getNode().requestFollowCaret();
+            }
+        } catch (IOException ex) {
+            Logger.getLogger(Command.class.getName()).log(Level.SEVERE, null, ex);
+            printException(resources.getString("request.current"), ex);
+        }
+    }
+
+    private void printHasAuthorizationResult(AsyncResult<HasAuthorizationResult> asyncresult) {
+        if (asyncresult.getResult().hasAuthorization()) {
+            commandOutput.getNode().appendText(String.format(resources.getString("result.hasauthorizationyes"), asyncresult.getElapsed().elapsed(), asyncresult.getResult().getResource()));
+            commandOutput.getNode().requestFollowCaret();
+        } else {
+            commandOutput.getNode().appendText(String.format(resources.getString("result.hasauthorizationno"), asyncresult.getElapsed().elapsed(), asyncresult.getResult().getResource()));
+            commandOutput.getNode().requestFollowCaret();
+        }
+    }
+
     private void printQueryResult(AsyncResult<List<Record>> asyncresult) {
         try {
             commandOutput.getNode().appendText(String.format(resources.getString("result.query"), asyncresult.getElapsed().elapsed(), asyncresult.getResult().size()));
@@ -229,6 +285,29 @@ public class Command {
             try {
                 return new AsyncResult<String>(ReducerLogin.login(app.getQueryLink(), user, password), e);
             } catch (DataException ex) {
+                throw new CompletionException(ex);
+            }
+        });
+    }
+
+    private CompletableFuture<AsyncResult<Record>> current(String headerText) {
+        Elapsed e = new Elapsed();
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                return new AsyncResult<Record>(ReducerLogin.current(app.getQueryLink(), readHeader(headerText)), e);
+            } catch (IOException | DataException ex) {
+                throw new CompletionException(ex);
+            }
+        });
+    }
+
+    private CompletableFuture<AsyncResult<HasAuthorizationResult>> hasAuthorization(String headerText, String resource) {
+        Elapsed e = new Elapsed();
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                boolean hasAuthorization = ReducerLogin.hasAuthorization(app.getQueryLink(), readHeader(headerText), resource);
+                return new AsyncResult<HasAuthorizationResult>(new HasAuthorizationResult(resource, hasAuthorization), e);
+            } catch (IOException | DataException ex) {
                 throw new CompletionException(ex);
             }
         });
