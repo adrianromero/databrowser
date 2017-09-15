@@ -14,9 +14,12 @@ import com.adr.data.record.RecordMap;
 import com.adr.data.recordparser.RecordsSerializer;
 import com.adr.data.security.ReducerLogin;
 import com.adr.data.var.VariantString;
+import com.adr.fonticon.FontAwesome;
+import com.adr.fonticon.IconBuilder;
 import com.adr.hellocommon.dialog.MessageUtils;
 import com.adr.hellocommon.utils.FXMLUtil;
 import java.util.List;
+import java.util.ResourceBundle;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.function.Consumer;
@@ -28,13 +31,12 @@ import javafx.application.Platform;
 
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.geometry.Insets;
 import javafx.scene.Parent;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.StackPane;
 import org.fxmisc.flowless.VirtualizedScrollPane;
-import org.fxmisc.richtext.CodeArea;
 
 /**
  *
@@ -45,22 +47,32 @@ public class Command {
     @FXML
     private BorderPane root;
     @FXML
-    private BorderPane recordscontainer;
+    private StackPane headerContainer;
     @FXML
-    private BorderPane outputcontainer;
+    private StackPane recordContainer;
+    @FXML
+    private StackPane outputContainer;
     @FXML
     private Label tasks;
 
-    private SytntaxArea commandHeader;
-    private SytntaxArea commandField;
-    private SytntaxArea commandOutput;
-    
+    @FXML
+    Button actionExecute;
+    @FXML
+    Button actionQuery;
+    @FXML
+    Button actionFind;
+
+    private SyntaxArea commandHeader;
+    private SyntaxArea commandField;
+    private SyntaxArea commandOutput;
+
+    private final ResourceBundle resources = ResourceBundle.getBundle("com/adr/dataclient/fxml/command");
     private final Application app;
     private int running = 0;
 
     public Command(Application app) {
         this.app = app;
-        FXMLUtil.load(this, "/com/adr/dataclient/fxml/command.fxml");
+        FXMLUtil.load(this, "/com/adr/dataclient/fxml/command.fxml", "com/adr/dataclient/fxml/command");
     }
 
     public Parent getNode() {
@@ -69,49 +81,43 @@ public class Command {
 
     @FXML
     void initialize() {
-        
-        commandHeader = new SytntaxArea();
+
+        actionExecute.setGraphic(IconBuilder.create(FontAwesome.FA_CLOUD_UPLOAD).build());
+        actionQuery.setGraphic(IconBuilder.create(FontAwesome.FA_CLOUD_DOWNLOAD).build());
+        actionFind.setGraphic(IconBuilder.create(FontAwesome.FA_SEARCH).build());
+
+        commandHeader = new RecordsArea();
         commandHeader.getNode().setMaxHeight(80.0);
-        StackPane pHeader1 = new StackPane(new VirtualizedScrollPane<>(commandHeader.getNode()));
-        pHeader1.getStyleClass().add(0, "scroll-pane");        
-        StackPane pHeader2 = new StackPane(pHeader1);
-        pHeader2.setPadding(new Insets(5, 5, 0, 5));  
-        recordscontainer.setTop(pHeader2);
-        
-        commandField = new SytntaxArea();
-        StackPane pField1 = new StackPane(new VirtualizedScrollPane<>(commandField.getNode()));
-        pField1.getStyleClass().add(0, "scroll-pane");
-        StackPane pField2 = new StackPane(pField1);
-        pField2.setPadding(new Insets(5));  
-        recordscontainer.setCenter(pField2);
-        
-        commandOutput = new SytntaxArea();
+        headerContainer.getChildren().add(new VirtualizedScrollPane<>(commandHeader.getNode()));
+
+        commandField = new RecordsArea();
+        recordContainer.getChildren().add(new VirtualizedScrollPane<>(commandField.getNode()));
+
+        commandOutput = new OutputArea();
         commandOutput.getNode().setEditable(false);
-        outputcontainer.setCenter(new VirtualizedScrollPane<>(commandOutput.getNode()));
-        
-       
+        outputContainer.getChildren().add(new VirtualizedScrollPane<>(commandOutput.getNode()));
+
         Record r = new RecordMap(
                 new Entry("__ENTITY", "USERNAME"),
                 new Entry("ID.KEY", VariantString.NULL),
                 new Entry("NAME", "guest"),
-                new Entry("DISPLAYNAME", VariantString.NULL));
+                new Entry("DISPLAYNAME", VariantString.NULL),
+                new Entry("ROLE_ID", VariantString.NULL));
         try {
             commandField.getNode().replaceText(RecordsSerializer.write(r));
-            commandField.getNode().position(0, 0);            
+            commandField.getNode().position(0, 0);
         } catch (IOException ex) {
             Logger.getLogger(Command.class.getName()).log(Level.SEVERE, null, ex);
         }
-
-//        scrollOutput.vvalueProperty().bind(commandOutput.heightProperty());
     }
 
     @FXML
     void onLogin(ActionEvent event) {
         beginTask();
         login("admin", "admin")
-                .whenComplete(runLater(this::endTask))                
+                .whenComplete(runLater(this::endTask))
                 .thenApply(runLater(this::printLoginResult))
-                .exceptionally(runLater(this::printException));        
+                .exceptionally(runLater((Throwable t) -> printException(resources.getString("request.login"), t)));
     }
 
     @FXML
@@ -125,88 +131,91 @@ public class Command {
         query(commandHeader.getNode().getText(), commandField.getNode().getText())
                 .whenComplete(runLater(this::endTask))
                 .thenApply(runLater(this::printQueryResult))
-                .exceptionally(runLater(this::printException));
+                .exceptionally(runLater((Throwable t) -> printException(resources.getString("request.query"), t)));
     }
 
     @FXML
     void onFind(ActionEvent event) {
+        beginTask();
         find(commandHeader.getNode().getText(), commandField.getNode().getText())
+                .whenComplete(runLater(this::endTask))
                 .thenApply(runLater(this::printFindResult))
-                .exceptionally(runLater(this::printException));
+                .exceptionally(runLater((Throwable t) -> printException(resources.getString("request.find"), t)));
     }
 
     @FXML
     void onExecute(ActionEvent event) {
+        beginTask();
         execute(commandHeader.getNode().getText(), commandField.getNode().getText())
+                .whenComplete(runLater(this::endTask))
                 .thenApply(runLater(this::printExecuteResult))
-                .exceptionally(runLater(this::printException));
+                .exceptionally(runLater((Throwable t) -> printException(resources.getString("request.execute"), t)));
     }
 
     //////////////////////////
     // Print operations
     //////////////////////////
-    
     private void beginTask() {
-        running ++;
+        running++;
         tasks.setText(String.format("running %s", running));
     }
-    
+
     private <T, U> void endTask(T t, U u) {
-        running --;
+        running--;
         if (running <= 0) {
             tasks.setText("");
         } else {
-           tasks.setText(String.format("running %s", running));
+            tasks.setText(String.format("running %s", running));
         }
     }
-    
-    private void printLoginResult(String authorization) {
-        try {        
-            Record header = new RecordMap(new Entry("Authorization", authorization));  
+
+    private void printLoginResult(AsyncResult<String> asyncresult) {
+        try {
+            Record header = new RecordMap(new Entry("Authorization", asyncresult.getResult()));
             commandHeader.getNode().replaceText(RecordsSerializer.write(header));
-            commandHeader.getNode().selectRange(0, 0); 
-            commandOutput.getNode().appendText("Success. Login request.\n");
+            commandHeader.getNode().selectRange(0, 0);
+            commandOutput.getNode().appendText(String.format(resources.getString("result.login"), asyncresult.getElapsed().elapsed()));
             commandOutput.getNode().requestFollowCaret();
         } catch (IOException ex) {
             Logger.getLogger(Command.class.getName()).log(Level.SEVERE, null, ex);
-            printException(ex);
-        }        
+            printException(resources.getString("request.login"), ex);
+        }
     }
-    
-    private void printFindResult(Record result) {
+
+    private void printFindResult(AsyncResult<Record> asyncresult) {
         try {
-            if (result == null) {
-                commandOutput.getNode().appendText("Fail. Find request. No record returned.\n");
+            if (asyncresult.getResult() == null) {
+                commandOutput.getNode().appendText(String.format(resources.getString("result.findsuccess0"), asyncresult.getElapsed().elapsed()));
                 commandOutput.getNode().requestFollowCaret();
             } else {
-                commandOutput.getNode().appendText("Success. Find request. Record returned.\n");
-                commandOutput.getNode().appendText(RecordsSerializer.write(result) + "\n");
+                commandOutput.getNode().appendText(String.format(resources.getString("result.findsuccess1"), asyncresult.getElapsed().elapsed()));
+                commandOutput.getNode().appendText(RecordsSerializer.write(asyncresult.getResult()) + "\n");
                 commandOutput.getNode().requestFollowCaret();
             }
         } catch (IOException ex) {
             Logger.getLogger(Command.class.getName()).log(Level.SEVERE, null, ex);
-            printException(ex);
+            printException(resources.getString("request.find"), ex);
         }
     }
 
-    private void printQueryResult(List<Record> result) {
+    private void printQueryResult(AsyncResult<List<Record>> asyncresult) {
         try {
-            commandOutput.getNode().appendText("Success. Query request. Rows returned: " + Integer.toString(result.size()) + ".\n");
-            commandOutput.getNode().appendText(RecordsSerializer.writeList(result) + "\n");
+            commandOutput.getNode().appendText(String.format(resources.getString("result.query"), asyncresult.getElapsed().elapsed(), asyncresult.getResult().size()));
+            commandOutput.getNode().appendText(RecordsSerializer.writeList(asyncresult.getResult()) + "\n");
             commandOutput.getNode().requestFollowCaret();
         } catch (IOException ex) {
             Logger.getLogger(Command.class.getName()).log(Level.SEVERE, null, ex);
-            printException(ex);
+            printException(resources.getString("request.query"), ex);
         }
     }
-    
-    private void printExecuteResult(Void v) {
-        commandOutput.getNode().appendText("Success. Execute request.\n");
+
+    private void printExecuteResult(AsyncResult<Void> asyncresult) {
+        commandOutput.getNode().appendText(String.format(resources.getString("result.execute"), asyncresult.getElapsed().elapsed()));
         commandOutput.getNode().requestFollowCaret();
     }
 
-    private void printException(Throwable ex) {
-        commandOutput.getNode().appendText("Fail. " + ex.getMessage().replaceAll("\n", " ") + "\n");
+    private void printException(String requestname, Throwable ex) {
+        commandOutput.getNode().appendText(String.format(resources.getString("result.exception"), requestname, ex.getMessage().replaceAll("\n", " ")));
         commandOutput.getNode().requestFollowCaret();
     }
 
@@ -214,62 +223,50 @@ public class Command {
     // Asynchronous operations
     //////////////////////////
     //
-    private CompletableFuture<String> login(String user, String password) {
+    private CompletableFuture<AsyncResult<String>> login(String user, String password) {
+        Elapsed e = new Elapsed();
         return CompletableFuture.supplyAsync(() -> {
             try {
-                Thread.sleep(2000);
-            } catch (InterruptedException ex) {
-            }
-            try {
-                return ReducerLogin.login(app.getQueryLink(), user, password);
+                return new AsyncResult<String>(ReducerLogin.login(app.getQueryLink(), user, password), e);
             } catch (DataException ex) {
                 throw new CompletionException(ex);
             }
         });
     }
-    
-    private CompletableFuture<List<Record>> query(String headerText, String filterText) {
+
+    private CompletableFuture<AsyncResult<List<Record>>> query(String headerText, String filterText) {
+        Elapsed e = new Elapsed();
         return CompletableFuture.supplyAsync(() -> {
             try {
-                Thread.sleep(2000);
-            } catch (InterruptedException ex) {
-            }
-            try {
-                return app.getQueryLink().query(readHeader(headerText), readFilter(filterText));
+                return new AsyncResult<List<Record>>(app.getQueryLink().query(readHeader(headerText), readFilter(filterText)), e);
             } catch (IOException | DataException ex) {
                 throw new CompletionException(ex);
             }
         });
     }
 
-    private CompletableFuture<Record> find(String headerText, String filterText) {
+    private CompletableFuture<AsyncResult<Record>> find(String headerText, String filterText) {
+        Elapsed e = new Elapsed();
         return CompletableFuture.supplyAsync(() -> {
             try {
-                Thread.sleep(2000);
-            } catch (InterruptedException ex) {
-            }
-            try {
-                return app.getQueryLink().find(readHeader(headerText), readFilter(filterText));
+                return new AsyncResult<Record>(app.getQueryLink().find(readHeader(headerText), readFilter(filterText)), e);
             } catch (IOException | DataException ex) {
                 throw new CompletionException(ex);
             }
         });
     }
 
-    private CompletableFuture<Void> execute(String headerText, String listText) {
+    private CompletableFuture<AsyncResult<Void>> execute(String headerText, String listText) {
+        Elapsed e = new Elapsed();
         return CompletableFuture.supplyAsync(() -> {
-            try {
-                Thread.sleep(2000);
-            } catch (InterruptedException ex) {
-            }
             try {
                 app.getDataLink().execute(readHeader(headerText), readList(listText));
-                return null;
+                return new AsyncResult<Void>(null, e);
             } catch (IOException | DataException ex) {
                 throw new CompletionException(ex);
             }
         });
-    }    
+    }
 
     private Record readHeader(String headerText) throws IOException {
         if (headerText.trim().isEmpty()) {
@@ -296,7 +293,7 @@ public class Command {
         };
     }
 
-    private <T, U> BiConsumer<T, U> runLater(BiConsumer<T,U> consumer) {
+    private <T, U> BiConsumer<T, U> runLater(BiConsumer<T, U> consumer) {
         return (T t, U u) -> {
             Platform.runLater(() -> {
                 consumer.accept(t, u);

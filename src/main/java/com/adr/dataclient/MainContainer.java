@@ -37,7 +37,7 @@ public class MainContainer {
         commandcontroller = new Command(app);       
         command.setContent(commandcontroller.getNode());     
         
-        SytntaxArea area = new SytntaxArea();
+        SyntaxArea area = new RecordsArea();
         datalinks.setContent(area.getNode());
     }
     
