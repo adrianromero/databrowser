@@ -257,7 +257,9 @@ public class Command {
     private void printQueryResult(AsyncResult<List<Record>> asyncresult) {
         try {
             commandOutput.getNode().appendText(String.format(resources.getString("result.query"), asyncresult.getElapsed().elapsed(), asyncresult.getResult().size()));
-            commandOutput.getNode().appendText(RecordsSerializer.writeList(asyncresult.getResult()) + "\n");
+            if (asyncresult.getResult().size() > 0) {
+                commandOutput.getNode().appendText(RecordsSerializer.writeList(asyncresult.getResult()) + "\n");
+            }
             commandOutput.getNode().requestFollowCaret();
         } catch (IOException ex) {
             Logger.getLogger(Command.class.getName()).log(Level.SEVERE, null, ex);
