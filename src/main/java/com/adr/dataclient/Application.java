@@ -5,9 +5,9 @@
  */
 package com.adr.dataclient;
 
-import com.adr.data.DataLink;
-import com.adr.data.QueryLink;
 import com.adr.dataclient.links.SampleQueryLink;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 
 /**
  *
@@ -16,17 +16,29 @@ import com.adr.dataclient.links.SampleQueryLink;
 public class Application {
     
     SampleQueryLink linkprovider = new SampleQueryLink();
-    
+    private final ObservableList<AppQueryLink> appquerylinks;
+    private final ObservableList<AppDataLink> appdatalinks;
     
     public Application() {
         linkprovider.create();
+        
+        appquerylinks = FXCollections.observableArrayList(
+                null,
+                new AppQueryLink("hellodb", linkprovider.getQueryLink()), 
+                new AppQueryLink("hellodb copy", linkprovider.getQueryLink()),
+                new AppQueryLink("null", null));
+        appdatalinks = FXCollections.observableArrayList(
+                null,
+                new AppDataLink("hellodb", linkprovider.getDataLink()),
+                new AppDataLink("hellodb copy", linkprovider.getDataLink()),
+                new AppDataLink("null", null)); 
     }
     
-    public QueryLink getQueryLink() {
-        return linkprovider.getQueryLink();
+    public ObservableList<AppQueryLink> getQueryLinks() {
+        return appquerylinks;
     }
-    
-    public DataLink getDataLink() {
-        return linkprovider.getDataLink();
-    }   
+
+    public ObservableList<AppDataLink> getDataLinks() {
+        return appdatalinks;
+    }
 }

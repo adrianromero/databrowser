@@ -21,11 +21,18 @@
       <ToolBar prefHeight="40.0" prefWidth="200.0" BorderPane.alignment="CENTER">
         <items>
           <Button fx:id="actionExecute" focusTraversable="false" mnemonicParsing="false" onAction="#onExecute" />
-            <ChoiceBox prefWidth="150.0" />
+            <ChoiceBox fx:id="appdatalinks" focusTraversable="false" prefWidth="150.0" />
             <Separator orientation="VERTICAL" />
             <Button fx:id="actionQuery" focusTraversable="false" layoutX="10.0" layoutY="11.0" mnemonicParsing="false" onAction="#onQuery" />
             <Button fx:id="actionFind" focusTraversable="false" layoutX="85.0" layoutY="11.0" mnemonicParsing="false" onAction="#onFind" />
-            <ChoiceBox prefWidth="150.0" />
+            <MenuButton fx:id="menuSecurity" focusTraversable="false" mnemonicParsing="false" text="%action.security">
+              <items>
+                <MenuItem mnemonicParsing="false" onAction="#onLogin" text="%action.login" />
+                  <MenuItem mnemonicParsing="false" onAction="#onCurrentUser" text="%action.currentuser" />
+                  <MenuItem mnemonicParsing="false" onAction="#onHasAuthorization" text="%action.hasauthorization" />
+              </items>
+            </MenuButton>
+            <ChoiceBox fx:id="appquerylinks" focusTraversable="false" prefWidth="150.0" />
             <Separator orientation="VERTICAL" />
           <Button fx:id="actionClear" focusTraversable="false" mnemonicParsing="false" onAction="#onClear" />
             <MenuButton focusTraversable="false" mnemonicParsing="false" text="%action.output">
@@ -36,17 +43,8 @@
                   <CheckMenuItem mnemonicParsing="false" text="%action.torequest" />
                </items>
             </MenuButton>
-            <Separator layoutX="197.0" layoutY="10.0" orientation="VERTICAL" />
-            <MenuButton focusTraversable="false" mnemonicParsing="false" text="%action.security">
-              <items>
-                <MenuItem mnemonicParsing="false" onAction="#onLogin" text="%action.login" />
-                  <MenuItem mnemonicParsing="false" onAction="#onLogout" text="%action.logout" />
-                  <MenuItem mnemonicParsing="false" onAction="#onCurrentUser" text="%action.currentuser" />
-                  <MenuItem mnemonicParsing="false" onAction="#onHasAuthorization" text="%action.hasauthorization" />
-              </items>
-            </MenuButton>
             <Pane HBox.hgrow="ALWAYS" />
-            <Label fx:id="tasks" />
+            <Label fx:id="tasks" alignment="CENTER_RIGHT" contentDisplay="RIGHT" visible="false" />
         </items>
       </ToolBar>
    </top>

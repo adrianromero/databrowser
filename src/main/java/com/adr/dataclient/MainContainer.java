@@ -32,7 +32,8 @@ public class MainContainer {
     
     @FXML
     public void initialize() {
-        root.getProperties().put("DialogRoot", true);
+        MessageUtils.setDialogRoot(root, true);
+        MessageUtils.useDefaultCSS();
         
         commandcontroller = new Command(app);       
         command.setContent(commandcontroller.getNode());     

@@ -8,6 +8,8 @@ package com.adr.dataclient;
 import java.io.IOException;
 
 import com.adr.data.DataException;
+import com.adr.data.DataLink;
+import com.adr.data.QueryLink;
 import com.adr.data.record.Entry;
 import com.adr.data.record.Record;
 import com.adr.data.record.RecordMap;
@@ -27,15 +29,23 @@ import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.animation.Animation;
+import javafx.animation.Interpolator;
+import javafx.animation.RotateTransition;
 import javafx.application.Platform;
 
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.scene.CacheHint;
 import javafx.scene.Parent;
 import javafx.scene.control.Button;
+import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.MenuButton;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.StackPane;
+import javafx.scene.shape.Shape;
+import javafx.util.Duration;
 import org.fxmisc.flowless.VirtualizedScrollPane;
 
 /**
@@ -44,6 +54,8 @@ import org.fxmisc.flowless.VirtualizedScrollPane;
  */
 public class Command {
 
+    @FXML
+    private ResourceBundle resources;
     @FXML
     private BorderPane root;
     @FXML
@@ -56,11 +68,18 @@ public class Command {
     private Label tasks;
 
     @FXML
+    private ChoiceBox<AppDataLink> appdatalinks;
+    @FXML
+    private ChoiceBox<AppQueryLink> appquerylinks;
+
+    @FXML
     Button actionExecute;
     @FXML
     Button actionQuery;
     @FXML
     Button actionFind;
+    @FXML
+    MenuButton menuSecurity;
     @FXML
     Button actionClear;
 
@@ -68,9 +87,13 @@ public class Command {
     private SyntaxArea commandField;
     private SyntaxArea commandOutput;
 
-    private final ResourceBundle resources = ResourceBundle.getBundle("com/adr/dataclient/fxml/command");
+    private RotateTransition tasksrt;
+
     private final Application app;
     private int running = 0;
+
+    private LoginDialog login = new LoginDialog();
+    private AuthorizationDialog authorization = new AuthorizationDialog();
 
     public Command(Application app) {
         this.app = app;
@@ -89,6 +112,15 @@ public class Command {
         actionFind.setGraphic(IconBuilder.create(FontAwesome.FA_SEARCH).build());
         actionClear.setGraphic(IconBuilder.create(FontAwesome.FA_BAN).build());
 
+        Shape s = IconBuilder.create(FontAwesome.FA_CIRCLE_O_NOTCH).build();
+        s.setCacheHint(CacheHint.ROTATE);
+        tasksrt = new RotateTransition(Duration.millis(1000), s);
+        tasksrt.setFromAngle(0);
+        tasksrt.setToAngle(360);
+        tasksrt.setCycleCount(Animation.INDEFINITE);
+        tasksrt.setInterpolator(Interpolator.LINEAR);
+        tasks.setGraphic(s);
+
         commandHeader = new RecordsArea();
         commandHeader.getNode().setMaxHeight(80.0);
         headerContainer.getChildren().add(new VirtualizedScrollPane<>(commandHeader.getNode()));
@@ -99,6 +131,16 @@ public class Command {
         commandOutput = new OutputArea();
         commandOutput.getNode().setEditable(false);
         outputContainer.getChildren().add(new VirtualizedScrollPane<>(commandOutput.getNode()));
+
+        appdatalinks.setItems(app.getDataLinks());
+        // appdatalinks.getSelectionModel().selectFirst();
+        actionExecute.disableProperty().bind(appdatalinks.valueProperty().isNull());
+
+        appquerylinks.setItems(app.getQueryLinks());
+        // appquerylinks.getSelectionModel().selectFirst();   
+        actionQuery.disableProperty().bind(appquerylinks.valueProperty().isNull());
+        actionFind.disableProperty().bind(appquerylinks.valueProperty().isNull());
+        menuSecurity.disableProperty().bind(appquerylinks.valueProperty().isNull());
 
         Record r = new RecordMap(
                 new Entry("__ENTITY", "USERNAME"),
@@ -121,22 +163,21 @@ public class Command {
 
     @FXML
     void onLogin(ActionEvent event) {
-        beginTask();
-        login("admin", "admin")
-                .whenComplete(runLater(this::endTask))
-                .thenApply(runLater(this::printLoginResult))
-                .exceptionally(runLater((Throwable t) -> printException(resources.getString("request.login"), t)));
-    }
 
-    @FXML
-    void onLogout(ActionEvent event) {
-        commandHeader.getNode().replaceText("");
+        login.showDialog(root, (String user, String password) -> {
+            beginTask();
+            login(appquerylinks.getValue().getLink(), user, password)
+                    .whenComplete(runLater(this::endTask))
+                    .thenApply(runLater(this::printLoginResult))
+                    .exceptionally(runLater((Throwable t) -> printException(resources.getString("request.login"), t)));
+
+        });
     }
 
     @FXML
     void onCurrentUser(ActionEvent event) {
         beginTask();
-        current(commandHeader.getNode().getText())
+        current(appquerylinks.getValue().getLink(), commandHeader.getNode().getText())
                 .whenComplete(runLater(this::endTask))
                 .thenApply(runLater(this::printCurrentResult))
                 .exceptionally(runLater((Throwable t) -> printException(resources.getString("request.current"), t)));
@@ -144,21 +185,19 @@ public class Command {
 
     @FXML
     void onHasAuthorization(ActionEvent event) {
-        beginTask();
-        hasAuthorization(commandHeader.getNode().getText(), "cachelo")
-                .whenComplete(runLater(this::endTask))
-                .thenApply(runLater(this::printHasAuthorizationResult))
-                .exceptionally(runLater((Throwable t) -> printException(resources.getString("request.hasauthorization"), t)));
+        authorization.showDialog(root, (String resource) -> {         
+            beginTask();
+            hasAuthorization(appquerylinks.getValue().getLink(), commandHeader.getNode().getText(), resource)
+                    .whenComplete(runLater(this::endTask))
+                    .thenApply(runLater(this::printHasAuthorizationResult))
+                    .exceptionally(runLater((Throwable t) -> printException(resources.getString("request.hasauthorization"), t)));
+        });
     }
 
-//    @FXML
-//    void onLogout(ActionEvent event) {
-//        MessageUtils.showInfo(MessageUtils.getRoot(root), "title", "message");
-//    }
     @FXML
     void onQuery(ActionEvent event) {
         beginTask();
-        query(commandHeader.getNode().getText(), commandField.getNode().getText())
+        query(appquerylinks.getValue().getLink(), commandHeader.getNode().getText(), commandField.getNode().getText())
                 .whenComplete(runLater(this::endTask))
                 .thenApply(runLater(this::printQueryResult))
                 .exceptionally(runLater((Throwable t) -> printException(resources.getString("request.query"), t)));
@@ -167,7 +206,7 @@ public class Command {
     @FXML
     void onFind(ActionEvent event) {
         beginTask();
-        find(commandHeader.getNode().getText(), commandField.getNode().getText())
+        find(appquerylinks.getValue().getLink(), commandHeader.getNode().getText(), commandField.getNode().getText())
                 .whenComplete(runLater(this::endTask))
                 .thenApply(runLater(this::printFindResult))
                 .exceptionally(runLater((Throwable t) -> printException(resources.getString("request.find"), t)));
@@ -176,7 +215,7 @@ public class Command {
     @FXML
     void onExecute(ActionEvent event) {
         beginTask();
-        execute(commandHeader.getNode().getText(), commandField.getNode().getText())
+        execute(appdatalinks.getValue().getLink(), commandHeader.getNode().getText(), commandField.getNode().getText())
                 .whenComplete(runLater(this::endTask))
                 .thenApply(runLater(this::printExecuteResult))
                 .exceptionally(runLater((Throwable t) -> printException(resources.getString("request.execute"), t)));
@@ -187,15 +226,25 @@ public class Command {
     //////////////////////////
     private void beginTask() {
         running++;
-        tasks.setText(String.format("running %s", running));
+
+        if (running > 1) {
+            tasks.setText(String.format(resources.getString("label.tasks"), running));
+        } else if (running > 0) {
+            tasks.setVisible(true);
+            tasksrt.play();
+        }
     }
 
     private <T, U> void endTask(T t, U u) {
         running--;
-        if (running <= 0) {
+
+        if (running > 1) {
+            tasks.setText(String.format(resources.getString("label.tasks"), running));
+        } else if (running > 0) {
             tasks.setText("");
-        } else {
-            tasks.setText(String.format("running %s", running));
+        } else if (running == 0) {
+            tasksrt.stop();
+            tasks.setVisible(false);
         }
     }
 
@@ -281,33 +330,33 @@ public class Command {
     // Asynchronous operations
     //////////////////////////
     //
-    private CompletableFuture<AsyncResult<String>> login(String user, String password) {
+    private CompletableFuture<AsyncResult<String>> login(QueryLink link, String user, String password) {
         Elapsed e = new Elapsed();
         return CompletableFuture.supplyAsync(() -> {
             try {
-                return new AsyncResult<String>(ReducerLogin.login(app.getQueryLink(), user, password), e);
+                return new AsyncResult<String>(ReducerLogin.login(link, user, password), e);
             } catch (DataException ex) {
                 throw new CompletionException(ex);
             }
         });
     }
 
-    private CompletableFuture<AsyncResult<Record>> current(String headerText) {
+    private CompletableFuture<AsyncResult<Record>> current(QueryLink link, String headerText) {
         Elapsed e = new Elapsed();
         return CompletableFuture.supplyAsync(() -> {
             try {
-                return new AsyncResult<Record>(ReducerLogin.current(app.getQueryLink(), readHeader(headerText)), e);
+                return new AsyncResult<Record>(ReducerLogin.current(link, readHeader(headerText)), e);
             } catch (IOException | DataException ex) {
                 throw new CompletionException(ex);
             }
         });
     }
 
-    private CompletableFuture<AsyncResult<HasAuthorizationResult>> hasAuthorization(String headerText, String resource) {
+    private CompletableFuture<AsyncResult<HasAuthorizationResult>> hasAuthorization(QueryLink link, String headerText, String resource) {
         Elapsed e = new Elapsed();
         return CompletableFuture.supplyAsync(() -> {
             try {
-                boolean hasAuthorization = ReducerLogin.hasAuthorization(app.getQueryLink(), readHeader(headerText), resource);
+                boolean hasAuthorization = ReducerLogin.hasAuthorization(link, readHeader(headerText), resource);
                 return new AsyncResult<HasAuthorizationResult>(new HasAuthorizationResult(resource, hasAuthorization), e);
             } catch (IOException | DataException ex) {
                 throw new CompletionException(ex);
@@ -315,33 +364,40 @@ public class Command {
         });
     }
 
-    private CompletableFuture<AsyncResult<List<Record>>> query(String headerText, String filterText) {
+    private CompletableFuture<AsyncResult<List<Record>>> query(QueryLink link, String headerText, String filterText) {
         Elapsed e = new Elapsed();
         return CompletableFuture.supplyAsync(() -> {
             try {
-                return new AsyncResult<List<Record>>(app.getQueryLink().query(readHeader(headerText), readFilter(filterText)), e);
+
+                try {
+                    Thread.sleep(2000);
+                } catch (InterruptedException exi) {
+
+                }
+
+                return new AsyncResult<List<Record>>(link.query(readHeader(headerText), readFilter(filterText)), e);
             } catch (IOException | DataException ex) {
                 throw new CompletionException(ex);
             }
         });
     }
 
-    private CompletableFuture<AsyncResult<Record>> find(String headerText, String filterText) {
+    private CompletableFuture<AsyncResult<Record>> find(QueryLink link, String headerText, String filterText) {
         Elapsed e = new Elapsed();
         return CompletableFuture.supplyAsync(() -> {
             try {
-                return new AsyncResult<Record>(app.getQueryLink().find(readHeader(headerText), readFilter(filterText)), e);
+                return new AsyncResult<Record>(link.find(readHeader(headerText), readFilter(filterText)), e);
             } catch (IOException | DataException ex) {
                 throw new CompletionException(ex);
             }
         });
     }
 
-    private CompletableFuture<AsyncResult<Void>> execute(String headerText, String listText) {
+    private CompletableFuture<AsyncResult<Void>> execute(DataLink link, String headerText, String listText) {
         Elapsed e = new Elapsed();
         return CompletableFuture.supplyAsync(() -> {
             try {
-                app.getDataLink().execute(readHeader(headerText), readList(listText));
+                link.execute(readHeader(headerText), readList(listText));
                 return new AsyncResult<Void>(null, e);
             } catch (IOException | DataException ex) {
                 throw new CompletionException(ex);
