@@ -155,7 +155,11 @@ public class Command {
             Logger.getLogger(Command.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-
+    @FXML
+    void onOutputFile(ActionEvent event) {
+        System.out.println("To Output file.");
+    }
+    
     @FXML
     void onClear(ActionEvent event) {
         commandOutput.getNode().clear();
@@ -368,13 +372,6 @@ public class Command {
         Elapsed e = new Elapsed();
         return CompletableFuture.supplyAsync(() -> {
             try {
-
-                try {
-                    Thread.sleep(2000);
-                } catch (InterruptedException exi) {
-
-                }
-
                 return new AsyncResult<List<Record>>(link.query(readHeader(headerText), readFilter(filterText)), e);
             } catch (IOException | DataException ex) {
                 throw new CompletionException(ex);

@@ -37,9 +37,8 @@
           <Button fx:id="actionClear" focusTraversable="false" mnemonicParsing="false" onAction="#onClear" />
             <MenuButton focusTraversable="false" mnemonicParsing="false" text="%action.output">
                <items>
-                  <CheckMenuItem mnemonicParsing="false" text="%action.console" />
-                  <CheckMenuItem mnemonicParsing="false" text="%action.tofile" />
-                  <CheckMenuItem mnemonicParsing="false" text="%action.toheader" />
+                  <CheckMenuItem mnemonicParsing="false" selected="true" text="%action.console" />
+                  <CheckMenuItem mnemonicParsing="false" onAction="#onOutputFile" text="%action.tofile" />
                   <CheckMenuItem mnemonicParsing="false" text="%action.torequest" />
                </items>
             </MenuButton>
