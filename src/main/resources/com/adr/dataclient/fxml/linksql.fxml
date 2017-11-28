@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.ChoiceBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.RowConstraints?>
+
+<GridPane fx:id="root" hgap="10.0" vgap="10.0" xmlns="http://javafx.com/javafx/8.0.141" xmlns:fx="http://javafx.com/fxml/1">
+  <columnConstraints>
+    <ColumnConstraints fillWidth="false" prefWidth="200.0" />
+    <ColumnConstraints fillWidth="false" />
+  </columnConstraints>
+  <rowConstraints>
+      <RowConstraints />
+    <RowConstraints />
+    <RowConstraints />
+    <RowConstraints />
+      <RowConstraints />
+  </rowConstraints>
+   <children>
+      <ChoiceBox fx:id="engine" prefWidth="200.0" GridPane.columnIndex="1" />
+      <Label text="%label.driver" GridPane.rowIndex="1" />
+      <TextField fx:id="driver" prefWidth="300.0" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+      <TextField fx:id="url" prefWidth="300.0" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+      <TextField fx:id="username" prefWidth="180.0" GridPane.columnIndex="1" GridPane.rowIndex="3" />
+      <PasswordField fx:id="password" prefWidth="180.0" GridPane.columnIndex="1" GridPane.rowIndex="4" />
+      <Label text="%label.engine" />
+      <Label text="%label.url" GridPane.rowIndex="2" />
+      <Label text="%label.username" GridPane.rowIndex="3" />
+      <Label text="%label.password" GridPane.rowIndex="4" />
+   </children>
+   <padding>
+      <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+   </padding>
+</GridPane>
