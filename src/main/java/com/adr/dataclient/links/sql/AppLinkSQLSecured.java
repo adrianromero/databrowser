@@ -21,9 +21,7 @@ import com.adr.data.security.jwt.ReducerQueryJWTVerify;
 import com.adr.data.sql.SQLDataLink;
 import com.adr.data.sql.SQLEngine;
 import com.adr.data.sql.SQLQueryLink;
-import com.adr.dataclient.links.AppDataLink;
 import com.adr.dataclient.links.AppLink;
-import com.adr.dataclient.links.AppQueryLink;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import java.nio.charset.StandardCharsets;
@@ -31,12 +29,13 @@ import java.util.Collections;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.collections.ObservableList;
+import com.adr.dataclient.links.AppDataQueryLink;
 
 /**
  *
  * @author adrian
  */
-class AppLinkSQLSecured implements AppLink, AppQueryLink, AppDataLink {
+class AppLinkSQLSecured implements AppLink, AppDataQueryLink {
 
     private final static Logger LOG = Logger.getLogger(AppLinkSQLSecured.class.getName());
     
@@ -100,10 +99,9 @@ class AppLinkSQLSecured implements AppLink, AppQueryLink, AppDataLink {
     }
 
     @Override
-    public void publish(ObservableList<AppDataLink> appdatalinks, ObservableList<AppQueryLink> appquerylinks) {
-        appdatalinks.add(this);
-        appquerylinks.add(this);
-     }    
+    public AppDataQueryLink get() {
+        return this;
+     }       
 
     @Override
     public QueryLink getQueryLink() {

@@ -10,20 +10,19 @@ import com.adr.data.QueryLink;
 import com.adr.data.sql.SQLDataLink;
 import com.adr.data.sql.SQLEngine;
 import com.adr.data.sql.SQLQueryLink;
-import com.adr.dataclient.links.AppDataLink;
 import com.adr.dataclient.links.AppLink;
-import com.adr.dataclient.links.AppQueryLink;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.collections.ObservableList;
+import com.adr.dataclient.links.AppDataQueryLink;
 
 /**
  *
  * @author adrian
  */
-class AppLinkSQL implements AppLink, AppQueryLink, AppDataLink {
+class AppLinkSQL implements AppLink, AppDataQueryLink {
 
     private final static Logger LOG = Logger.getLogger(AppLinkSQL.class.getName());
     
@@ -73,9 +72,8 @@ class AppLinkSQL implements AppLink, AppQueryLink, AppDataLink {
     }
 
     @Override
-    public void publish(ObservableList<AppDataLink> appdatalinks, ObservableList<AppQueryLink> appquerylinks) {
-        appdatalinks.add(this);
-        appquerylinks.add(this);
+    public AppDataQueryLink get() {
+        return this;
      }    
 
     @Override

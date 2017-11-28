@@ -6,11 +6,13 @@
 package com.adr.dataclient.links;
 
 import com.adr.data.DataLink;
+import com.adr.data.QueryLink;
 
 /**
  *
  * @author adrian
  */
-public interface AppDataLink {
-    DataLink getDataLink();
+public interface AppDataQueryLink {
+    DataLink getDataLink();    
+    QueryLink getQueryLink();
 }

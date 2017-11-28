@@ -5,8 +5,6 @@
  */
 package com.adr.dataclient.links;
 
-import javafx.collections.ObservableList;
-
 /**
  *
  * @author adrian
@@ -14,5 +12,5 @@ import javafx.collections.ObservableList;
 public interface AppLink {
     public void create();
     public void destroy(); 
-    public void publish(ObservableList<AppDataLink> appdatalinks, ObservableList<AppQueryLink> appquerylinks);
+    public AppDataQueryLink get();
 }

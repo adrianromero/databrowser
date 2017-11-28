@@ -14,8 +14,6 @@ import com.adr.data.record.RecordMap;
 import com.adr.data.recordparser.RecordsSerializer;
 import com.adr.data.security.ReducerLogin;
 import com.adr.data.var.VariantString;
-import com.adr.dataclient.links.AppDataLink;
-import com.adr.dataclient.links.AppQueryLink;
 import com.adr.fonticon.FontAwesome;
 import com.adr.fonticon.IconBuilder;
 import com.adr.hellocommon.utils.FXMLUtil;
@@ -47,6 +45,9 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import com.adr.dataclient.links.AppDataQueryLink;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 
 /**
  *
@@ -68,9 +69,7 @@ public class Command {
     private Label tasks;
 
     @FXML
-    private ChoiceBox<AppDataLink> appdatalinks;
-    @FXML
-    private ChoiceBox<AppQueryLink> appquerylinks;
+    private ChoiceBox<AppDataQueryLink> appdataquerylinks;
 
     @FXML
     Button actionExecute;
@@ -105,8 +104,7 @@ public class Command {
     }
     
     public void start() {
-        appdatalinks.getSelectionModel().selectFirst();
-        appquerylinks.getSelectionModel().selectFirst();
+        appdataquerylinks.getSelectionModel().selectFirst();
     }
 
     @FXML
@@ -116,6 +114,11 @@ public class Command {
         actionQuery.setGraphic(IconBuilder.create(FontAwesome.FA_CLOUD_DOWNLOAD).build());
         actionFind.setGraphic(IconBuilder.create(FontAwesome.FA_SEARCH).build());
         actionClear.setGraphic(IconBuilder.create(FontAwesome.FA_BAN).build());
+        
+        actionExecute.setDisable(true);
+        actionQuery.setDisable(true);
+        actionFind.setDisable(true);
+        menuSecurity.setDisable(true);            
 
         Shape s = IconBuilder.create(FontAwesome.FA_CIRCLE_O_NOTCH).build();
         s.setCacheHint(CacheHint.ROTATE);
@@ -137,15 +140,21 @@ public class Command {
         commandOutput.getNode().setEditable(false);
         outputContainer.getChildren().add(new VirtualizedScrollPane<>(commandOutput.getNode()));
 
-        appdatalinks.setItems(app.getDataLinks());
+        appdataquerylinks.setItems(app.getDataQueryLinks());
         // appdatalinks.getSelectionModel().selectFirst();
-        actionExecute.disableProperty().bind(appdatalinks.valueProperty().isNull());
-
-        appquerylinks.setItems(app.getQueryLinks());
-        // appquerylinks.getSelectionModel().selectFirst();   
-        actionQuery.disableProperty().bind(appquerylinks.valueProperty().isNull());
-        actionFind.disableProperty().bind(appquerylinks.valueProperty().isNull());
-        menuSecurity.disableProperty().bind(appquerylinks.valueProperty().isNull());
+        appdataquerylinks.valueProperty().addListener((ObservableValue<? extends AppDataQueryLink> observable, AppDataQueryLink oldValue, AppDataQueryLink newValue) -> {
+            if (newValue == null) {
+                actionExecute.setDisable(true);
+                actionQuery.setDisable(true);
+                actionFind.setDisable(true);
+                menuSecurity.setDisable(true);          
+            } else {
+                actionExecute.setDisable(newValue.getDataLink() == null);
+                actionQuery.setDisable(newValue.getQueryLink() == null);
+                actionFind.setDisable(newValue.getQueryLink() == null);
+                menuSecurity.setDisable(newValue.getQueryLink() == null);
+            }
+        });
 
         Record r = new RecordMap(
                 new Entry("COLLECTION.KEY", "USERNAME"),
@@ -175,7 +184,7 @@ public class Command {
 
         login.showDialog(root, (String user, String password) -> {
             beginTask();
-            login(appquerylinks.getValue().getQueryLink(), user, password)
+            login(appdataquerylinks.getValue().getQueryLink(), user, password)
                     .whenComplete(runLater(this::endTask))
                     .thenApply(runLater(this::printLoginResult))
                     .exceptionally(runLater((Throwable t) -> printException(resources.getString("request.login"), t)));
@@ -186,7 +195,7 @@ public class Command {
     @FXML
     void onCurrentUser(ActionEvent event) {
         beginTask();
-        current(appquerylinks.getValue().getQueryLink(), commandHeader.getNode().getText())
+        current(appdataquerylinks.getValue().getQueryLink(), commandHeader.getNode().getText())
                 .whenComplete(runLater(this::endTask))
                 .thenApply(runLater(this::printCurrentResult))
                 .exceptionally(runLater((Throwable t) -> printException(resources.getString("request.current"), t)));
@@ -196,7 +205,7 @@ public class Command {
     void onHasAuthorization(ActionEvent event) {
         authorization.showDialog(root, (String resource) -> {         
             beginTask();
-            hasAuthorization(appquerylinks.getValue().getQueryLink(), commandHeader.getNode().getText(), resource)
+            hasAuthorization(appdataquerylinks.getValue().getQueryLink(), commandHeader.getNode().getText(), resource)
                     .whenComplete(runLater(this::endTask))
                     .thenApply(runLater(this::printHasAuthorizationResult))
                     .exceptionally(runLater((Throwable t) -> printException(resources.getString("request.hasauthorization"), t)));
@@ -206,7 +215,7 @@ public class Command {
     @FXML
     void onQuery(ActionEvent event) {
         beginTask();
-        query(appquerylinks.getValue().getQueryLink(), commandHeader.getNode().getText(), commandField.getNode().getText())
+        query(appdataquerylinks.getValue().getQueryLink(), commandHeader.getNode().getText(), commandField.getNode().getText())
                 .whenComplete(runLater(this::endTask))
                 .thenApply(runLater(this::printQueryResult))
                 .exceptionally(runLater((Throwable t) -> printException(resources.getString("request.query"), t)));
@@ -215,7 +224,7 @@ public class Command {
     @FXML
     void onFind(ActionEvent event) {
         beginTask();
-        find(appquerylinks.getValue().getQueryLink(), commandHeader.getNode().getText(), commandField.getNode().getText())
+        find(appdataquerylinks.getValue().getQueryLink(), commandHeader.getNode().getText(), commandField.getNode().getText())
                 .whenComplete(runLater(this::endTask))
                 .thenApply(runLater(this::printFindResult))
                 .exceptionally(runLater((Throwable t) -> printException(resources.getString("request.find"), t)));
@@ -224,7 +233,7 @@ public class Command {
     @FXML
     void onExecute(ActionEvent event) {
         beginTask();
-        execute(appdatalinks.getValue().getDataLink(), commandHeader.getNode().getText(), commandField.getNode().getText())
+        execute(appdataquerylinks.getValue().getDataLink(), commandHeader.getNode().getText(), commandField.getNode().getText())
                 .whenComplete(runLater(this::endTask))
                 .thenApply(runLater(this::printExecuteResult))
                 .exceptionally(runLater((Throwable t) -> printException(resources.getString("request.execute"), t)));

@@ -5,15 +5,14 @@
  */
 package com.adr.dataclient;
 
-import com.adr.dataclient.links.AppDataLink;
 import com.adr.dataclient.links.AppLink;
-import com.adr.dataclient.links.AppQueryLink;
 import com.adr.dataclient.links.ConfigLink;
 import java.util.ArrayList;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
 import java.util.List;
+import com.adr.dataclient.links.AppDataQueryLink;
 
 /**
  *
@@ -22,21 +21,15 @@ import java.util.List;
 public class Application {
     
     private final List<AppLink> applinks;          
-    private final ObservableList<AppQueryLink> appquerylinks;
-    private final ObservableList<AppDataLink> appdatalinks;
+    private final ObservableList<AppDataQueryLink> appdataquerylinks;
     
     public Application() {       
         applinks = new ArrayList<AppLink>();
-        appquerylinks = FXCollections.observableArrayList();
-        appdatalinks = FXCollections.observableArrayList();
+        appdataquerylinks = FXCollections.observableArrayList();
     }
     
-    public ObservableList<AppQueryLink> getQueryLinks() {
-        return appquerylinks;
-    }
-
-    public ObservableList<AppDataLink> getDataLinks() {
-        return appdatalinks;
+    public ObservableList<AppDataQueryLink> getDataQueryLinks() {
+        return appdataquerylinks;
     }
 
     public void constructLinks(List<ConfigLink> links) {
@@ -46,12 +39,11 @@ public class Application {
         }
         
         // Now the observables...
-        appquerylinks.clear();
-        appdatalinks.clear(); 
+        appdataquerylinks.clear();
         
         for (AppLink l: applinks) {
             l.create();
-            l.publish(appdatalinks, appquerylinks);
+            appdataquerylinks.add(l.get());
         }
     }
 
@@ -63,8 +55,6 @@ public class Application {
         applinks.clear();
         
         // Now the observables...
-        appquerylinks.clear();
-        appdatalinks.clear(); 
+        appdataquerylinks.clear();
     }
-
 }
