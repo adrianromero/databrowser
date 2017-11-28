@@ -5,8 +5,6 @@
  */
 package com.adr.dataclient;
 
-import java.io.IOException;
-
 import com.adr.data.DataException;
 import com.adr.data.DataLink;
 import com.adr.data.QueryLink;
@@ -16,24 +14,15 @@ import com.adr.data.record.RecordMap;
 import com.adr.data.recordparser.RecordsSerializer;
 import com.adr.data.security.ReducerLogin;
 import com.adr.data.var.VariantString;
+import com.adr.dataclient.links.AppDataLink;
+import com.adr.dataclient.links.AppQueryLink;
 import com.adr.fonticon.FontAwesome;
 import com.adr.fonticon.IconBuilder;
-import com.adr.hellocommon.dialog.MessageUtils;
 import com.adr.hellocommon.utils.FXMLUtil;
-import java.util.List;
-import java.util.ResourceBundle;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
-import java.util.function.Consumer;
-import java.util.function.BiConsumer;
-import java.util.function.Function;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javafx.animation.Animation;
 import javafx.animation.Interpolator;
 import javafx.animation.RotateTransition;
 import javafx.application.Platform;
-
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.CacheHint;
@@ -47,6 +36,17 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.shape.Shape;
 import javafx.util.Duration;
 import org.fxmisc.flowless.VirtualizedScrollPane;
+
+import java.io.IOException;
+import java.util.List;
+import java.util.ResourceBundle;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -103,6 +103,11 @@ public class Command {
     public Parent getNode() {
         return root;
     }
+    
+    public void start() {
+        appdatalinks.getSelectionModel().selectFirst();
+        appquerylinks.getSelectionModel().selectFirst();
+    }
 
     @FXML
     void initialize() {
@@ -143,7 +148,7 @@ public class Command {
         menuSecurity.disableProperty().bind(appquerylinks.valueProperty().isNull());
 
         Record r = new RecordMap(
-                new Entry("__ENTITY", "USERNAME"),
+                new Entry("COLLECTION.KEY", "USERNAME"),
                 new Entry("ID.KEY", VariantString.NULL),
                 new Entry("NAME", "guest"),
                 new Entry("DISPLAYNAME", VariantString.NULL),
@@ -170,7 +175,7 @@ public class Command {
 
         login.showDialog(root, (String user, String password) -> {
             beginTask();
-            login(appquerylinks.getValue().getLink(), user, password)
+            login(appquerylinks.getValue().getQueryLink(), user, password)
                     .whenComplete(runLater(this::endTask))
                     .thenApply(runLater(this::printLoginResult))
                     .exceptionally(runLater((Throwable t) -> printException(resources.getString("request.login"), t)));
@@ -181,7 +186,7 @@ public class Command {
     @FXML
     void onCurrentUser(ActionEvent event) {
         beginTask();
-        current(appquerylinks.getValue().getLink(), commandHeader.getNode().getText())
+        current(appquerylinks.getValue().getQueryLink(), commandHeader.getNode().getText())
                 .whenComplete(runLater(this::endTask))
                 .thenApply(runLater(this::printCurrentResult))
                 .exceptionally(runLater((Throwable t) -> printException(resources.getString("request.current"), t)));
@@ -191,7 +196,7 @@ public class Command {
     void onHasAuthorization(ActionEvent event) {
         authorization.showDialog(root, (String resource) -> {         
             beginTask();
-            hasAuthorization(appquerylinks.getValue().getLink(), commandHeader.getNode().getText(), resource)
+            hasAuthorization(appquerylinks.getValue().getQueryLink(), commandHeader.getNode().getText(), resource)
                     .whenComplete(runLater(this::endTask))
                     .thenApply(runLater(this::printHasAuthorizationResult))
                     .exceptionally(runLater((Throwable t) -> printException(resources.getString("request.hasauthorization"), t)));
@@ -201,7 +206,7 @@ public class Command {
     @FXML
     void onQuery(ActionEvent event) {
         beginTask();
-        query(appquerylinks.getValue().getLink(), commandHeader.getNode().getText(), commandField.getNode().getText())
+        query(appquerylinks.getValue().getQueryLink(), commandHeader.getNode().getText(), commandField.getNode().getText())
                 .whenComplete(runLater(this::endTask))
                 .thenApply(runLater(this::printQueryResult))
                 .exceptionally(runLater((Throwable t) -> printException(resources.getString("request.query"), t)));
@@ -210,7 +215,7 @@ public class Command {
     @FXML
     void onFind(ActionEvent event) {
         beginTask();
-        find(appquerylinks.getValue().getLink(), commandHeader.getNode().getText(), commandField.getNode().getText())
+        find(appquerylinks.getValue().getQueryLink(), commandHeader.getNode().getText(), commandField.getNode().getText())
                 .whenComplete(runLater(this::endTask))
                 .thenApply(runLater(this::printFindResult))
                 .exceptionally(runLater((Throwable t) -> printException(resources.getString("request.find"), t)));
@@ -219,7 +224,7 @@ public class Command {
     @FXML
     void onExecute(ActionEvent event) {
         beginTask();
-        execute(appdatalinks.getValue().getLink(), commandHeader.getNode().getText(), commandField.getNode().getText())
+        execute(appdatalinks.getValue().getDataLink(), commandHeader.getNode().getText(), commandField.getNode().getText())
                 .whenComplete(runLater(this::endTask))
                 .thenApply(runLater(this::printExecuteResult))
                 .exceptionally(runLater((Throwable t) -> printException(resources.getString("request.execute"), t)));

@@ -7,9 +7,10 @@ package com.adr.dataclient;
 
 import com.adr.hellocommon.dialog.MessageUtils;
 import com.adr.hellocommon.utils.FXMLUtil;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.Parent;
-import javafx.scene.control.Tab;
+import javafx.scene.control.Button;
 import javafx.scene.layout.StackPane;
 
 /**
@@ -17,13 +18,16 @@ import javafx.scene.layout.StackPane;
  * @author adrian
  */
 public class MainContainer {
-    
+
     @FXML private StackPane root;
-    @FXML private Tab command;
-    @FXML private Tab datalinks;
-    
+    @FXML private StackPane appcontainer;
+    @FXML private Button connect;
+    @FXML private Button disconnect;
+
     private final Application app;
     private Command commandcontroller;
+    private Links linkscontroller;
+
     
     public MainContainer() {
         this.app = new Application();       
@@ -35,13 +39,41 @@ public class MainContainer {
         MessageUtils.setDialogRoot(root, true);
         MessageUtils.useDefaultCSS();
         
-        commandcontroller = new Command(app);       
-        command.setContent(commandcontroller.getNode());     
+        root.getStylesheets().add(getClass().getResource("/com/adr/dataclient/styles/main.css").toExternalForm());
+//        root.getStylesheets().add(getClass().getResource("/com/adr/dataclient/styles/dark.css").toExternalForm());
+
+        commandcontroller = new Command(app);
+        linkscontroller = new Links();
+
+        appcontainer.getChildren().addAll(commandcontroller.getNode(), linkscontroller.getNode());
+
+        disconnect.setVisible(false);
+        commandcontroller.getNode().setVisible(false);
+    }
+
+    @FXML
+    void actionConnect(ActionEvent event) {
         
-        SyntaxArea area = new RecordsArea();
-        datalinks.setContent(area.getNode());
+        app.constructLinks(linkscontroller.getConfigLinks());
+        
+        disconnect.setVisible(true);
+        commandcontroller.getNode().setVisible(true);
+        commandcontroller.start();
+        
+        connect.setVisible(false);
+        linkscontroller.getNode().setVisible(false);
     }
     
+    @FXML
+    void actionDisconnect(ActionEvent event) {
+        disconnect.setVisible(false);
+        commandcontroller.getNode().setVisible(false);
+        connect.setVisible(true);
+        linkscontroller.getNode().setVisible(true);
+        
+        app.destroyLinks();
+    }
+
     public Parent getNode() {
         return root;
     }

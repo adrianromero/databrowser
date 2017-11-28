@@ -5,9 +5,15 @@
  */
 package com.adr.dataclient;
 
-import com.adr.dataclient.links.SampleQueryLink;
+import com.adr.dataclient.links.AppDataLink;
+import com.adr.dataclient.links.AppLink;
+import com.adr.dataclient.links.AppQueryLink;
+import com.adr.dataclient.links.ConfigLink;
+import java.util.ArrayList;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+
+import java.util.List;
 
 /**
  *
@@ -15,23 +21,14 @@ import javafx.collections.ObservableList;
  */
 public class Application {
     
-    SampleQueryLink linkprovider = new SampleQueryLink();
+    private final List<AppLink> applinks;          
     private final ObservableList<AppQueryLink> appquerylinks;
     private final ObservableList<AppDataLink> appdatalinks;
     
-    public Application() {
-        linkprovider.create();
-        
-        appquerylinks = FXCollections.observableArrayList(
-                null,
-                new AppQueryLink("hellodb", linkprovider.getQueryLink()), 
-                new AppQueryLink("hellodb copy", linkprovider.getQueryLink()),
-                new AppQueryLink("null", null));
-        appdatalinks = FXCollections.observableArrayList(
-                null,
-                new AppDataLink("hellodb", linkprovider.getDataLink()),
-                new AppDataLink("hellodb copy", linkprovider.getDataLink()),
-                new AppDataLink("null", null)); 
+    public Application() {       
+        applinks = new ArrayList<AppLink>();
+        appquerylinks = FXCollections.observableArrayList();
+        appdatalinks = FXCollections.observableArrayList();
     }
     
     public ObservableList<AppQueryLink> getQueryLinks() {
@@ -41,4 +38,33 @@ public class Application {
     public ObservableList<AppDataLink> getDataLinks() {
         return appdatalinks;
     }
+
+    public void constructLinks(List<ConfigLink> links) {
+        applinks.clear();
+        for (ConfigLink l: links) {
+            applinks.add(l.createAppLink());
+        }
+        
+        // Now the observables...
+        appquerylinks.clear();
+        appdatalinks.clear(); 
+        
+        for (AppLink l: applinks) {
+            l.create();
+            l.publish(appdatalinks, appquerylinks);
+        }
+    }
+
+    public void destroyLinks() {
+
+        for (AppLink l: applinks) {
+            l.destroy();
+        }
+        applinks.clear();
+        
+        // Now the observables...
+        appquerylinks.clear();
+        appdatalinks.clear(); 
+    }
+
 }
