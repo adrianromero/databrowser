@@ -28,14 +28,12 @@ import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javafx.collections.ObservableList;
-import com.adr.dataclient.links.AppDataQueryLink;
 
 /**
  *
  * @author adrian
  */
-class AppLinkSQLSecured implements AppLink, AppDataQueryLink {
+class AppLinkSQLSecured implements AppLink {
 
     private final static Logger LOG = Logger.getLogger(AppLinkSQLSecured.class.getName());
     
@@ -96,12 +94,7 @@ class AppLinkSQLSecured implements AppLink, AppDataQueryLink {
         cpds.close();
         cpds = null;
         engine = null;
-    }
-
-    @Override
-    public AppDataQueryLink get() {
-        return this;
-     }       
+    } 
 
     @Override
     public QueryLink getQueryLink() {

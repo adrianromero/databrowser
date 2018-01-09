@@ -14,6 +14,7 @@ import com.adr.data.record.RecordMap;
 import com.adr.data.recordparser.RecordsSerializer;
 import com.adr.data.security.ReducerLogin;
 import com.adr.data.var.VariantString;
+import com.adr.dataclient.links.AppLink;
 import com.adr.fonticon.FontAwesome;
 import com.adr.fonticon.IconBuilder;
 import com.adr.hellocommon.utils.FXMLUtil;
@@ -28,7 +29,6 @@ import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.Label;
-import javafx.scene.control.MenuButton;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.shape.Shape;
@@ -45,8 +45,6 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import com.adr.dataclient.links.AppDataQueryLink;
-import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 
 /**
@@ -69,7 +67,7 @@ public class Command {
     private Label tasks;
 
     @FXML
-    private ChoiceBox<AppDataQueryLink> appdataquerylinks;
+    private ChoiceBox<AppLink> appdataquerylinks;
 
     @FXML
     Button actionExecute;
@@ -78,7 +76,12 @@ public class Command {
     @FXML
     Button actionFind;
     @FXML
-    MenuButton menuSecurity;
+    Button actionLogin;
+    @FXML
+    Button actionCurrentUser;
+    @FXML
+    Button actionHasAuthorization;
+
     @FXML
     Button actionClear;
 
@@ -113,12 +116,17 @@ public class Command {
         actionExecute.setGraphic(IconBuilder.create(FontAwesome.FA_CLOUD_UPLOAD).build());
         actionQuery.setGraphic(IconBuilder.create(FontAwesome.FA_CLOUD_DOWNLOAD).build());
         actionFind.setGraphic(IconBuilder.create(FontAwesome.FA_SEARCH).build());
+        actionLogin.setGraphic(IconBuilder.create(FontAwesome.FA_SIGN_IN).build());
+        actionCurrentUser.setGraphic(IconBuilder.create(FontAwesome.FA_USER).build());
+        actionHasAuthorization.setGraphic(IconBuilder.create(FontAwesome.FA_LOCK).build());
         actionClear.setGraphic(IconBuilder.create(FontAwesome.FA_BAN).build());
         
         actionExecute.setDisable(true);
         actionQuery.setDisable(true);
         actionFind.setDisable(true);
-        menuSecurity.setDisable(true);            
+        actionLogin.setDisable(true);            
+        actionCurrentUser.setDisable(true);            
+        actionHasAuthorization.setDisable(true);            
 
         Shape s = IconBuilder.create(FontAwesome.FA_CIRCLE_O_NOTCH).build();
         s.setCacheHint(CacheHint.ROTATE);
@@ -142,17 +150,21 @@ public class Command {
 
         appdataquerylinks.setItems(app.getDataQueryLinks());
         // appdatalinks.getSelectionModel().selectFirst();
-        appdataquerylinks.valueProperty().addListener((ObservableValue<? extends AppDataQueryLink> observable, AppDataQueryLink oldValue, AppDataQueryLink newValue) -> {
+        appdataquerylinks.valueProperty().addListener((ObservableValue<? extends AppLink> observable, AppLink oldValue, AppLink newValue) -> {
             if (newValue == null) {
                 actionExecute.setDisable(true);
                 actionQuery.setDisable(true);
                 actionFind.setDisable(true);
-                menuSecurity.setDisable(true);          
+                actionLogin.setDisable(true);            
+                actionCurrentUser.setDisable(true);            
+                actionHasAuthorization.setDisable(true);             
             } else {
                 actionExecute.setDisable(newValue.getDataLink() == null);
                 actionQuery.setDisable(newValue.getQueryLink() == null);
                 actionFind.setDisable(newValue.getQueryLink() == null);
-                menuSecurity.setDisable(newValue.getQueryLink() == null);
+                actionLogin.setDisable(newValue.getQueryLink() == null);            
+                actionCurrentUser.setDisable(newValue.getQueryLink() == null);            
+                actionHasAuthorization.setDisable(newValue.getQueryLink() == null);   
             }
         });
 
@@ -352,7 +364,7 @@ public class Command {
         Elapsed e = new Elapsed();
         return CompletableFuture.supplyAsync(() -> {
             try {
-                return new AsyncResult<String>(ReducerLogin.login(link, user, password), e);
+                return new AsyncResult<>(ReducerLogin.login(link, user, password), e);
             } catch (DataException ex) {
                 throw new CompletionException(ex);
             }
@@ -363,7 +375,7 @@ public class Command {
         Elapsed e = new Elapsed();
         return CompletableFuture.supplyAsync(() -> {
             try {
-                return new AsyncResult<Record>(ReducerLogin.current(link, readHeader(headerText)), e);
+                return new AsyncResult<>(ReducerLogin.current(link, readHeader(headerText)), e);
             } catch (IOException | DataException ex) {
                 throw new CompletionException(ex);
             }
@@ -375,7 +387,7 @@ public class Command {
         return CompletableFuture.supplyAsync(() -> {
             try {
                 boolean hasAuthorization = ReducerLogin.hasAuthorization(link, readHeader(headerText), resource);
-                return new AsyncResult<HasAuthorizationResult>(new HasAuthorizationResult(resource, hasAuthorization), e);
+                return new AsyncResult<>(new HasAuthorizationResult(resource, hasAuthorization), e);
             } catch (IOException | DataException ex) {
                 throw new CompletionException(ex);
             }
@@ -386,7 +398,7 @@ public class Command {
         Elapsed e = new Elapsed();
         return CompletableFuture.supplyAsync(() -> {
             try {
-                return new AsyncResult<List<Record>>(link.query(readHeader(headerText), readFilter(filterText)), e);
+                return new AsyncResult<>(link.query(readHeader(headerText), readFilter(filterText)), e);
             } catch (IOException | DataException ex) {
                 throw new CompletionException(ex);
             }
@@ -397,7 +409,7 @@ public class Command {
         Elapsed e = new Elapsed();
         return CompletableFuture.supplyAsync(() -> {
             try {
-                return new AsyncResult<Record>(link.find(readHeader(headerText), readFilter(filterText)), e);
+                return new AsyncResult<>(link.find(readHeader(headerText), readFilter(filterText)), e);
             } catch (IOException | DataException ex) {
                 throw new CompletionException(ex);
             }
@@ -409,7 +421,7 @@ public class Command {
         return CompletableFuture.supplyAsync(() -> {
             try {
                 link.execute(readHeader(headerText), readList(listText));
-                return new AsyncResult<Void>(null, e);
+                return new AsyncResult<>(null, e);
             } catch (IOException | DataException ex) {
                 throw new CompletionException(ex);
             }

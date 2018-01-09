@@ -6,7 +6,6 @@
 <?import javafx.scene.control.ChoiceBox?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.MenuButton?>
-<?import javafx.scene.control.MenuItem?>
 <?import javafx.scene.control.Separator?>
 <?import javafx.scene.control.SplitPane?>
 <?import javafx.scene.control.ToolBar?>
@@ -23,13 +22,10 @@
           <Button fx:id="actionExecute" focusTraversable="false" mnemonicParsing="false" onAction="#onExecute" />
             <Button fx:id="actionQuery" focusTraversable="false" layoutX="10.0" layoutY="11.0" mnemonicParsing="false" onAction="#onQuery" />
             <Button fx:id="actionFind" focusTraversable="false" layoutX="85.0" layoutY="11.0" mnemonicParsing="false" onAction="#onFind" />
-            <MenuButton fx:id="menuSecurity" focusTraversable="false" mnemonicParsing="false" text="%action.security">
-              <items>
-                <MenuItem mnemonicParsing="false" onAction="#onLogin" text="%action.login" />
-                  <MenuItem mnemonicParsing="false" onAction="#onCurrentUser" text="%action.currentuser" />
-                  <MenuItem mnemonicParsing="false" onAction="#onHasAuthorization" text="%action.hasauthorization" />
-              </items>
-            </MenuButton>
+            <Separator orientation="VERTICAL" />
+            <Button fx:id="actionLogin" focusTraversable="false" mnemonicParsing="false" onAction="#onLogin" />
+            <Button fx:id="actionCurrentUser" focusTraversable="false" mnemonicParsing="false" onAction="#onCurrentUser" />
+            <Button fx:id="actionHasAuthorization" focusTraversable="false" mnemonicParsing="false" onAction="#onHasAuthorization" />
             <Separator orientation="VERTICAL" />
             <ChoiceBox fx:id="appdataquerylinks" focusTraversable="false" prefWidth="150.0" />
             <Separator orientation="VERTICAL" />

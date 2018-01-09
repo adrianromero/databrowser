@@ -1,7 +1,6 @@
 package com.adr.dataclient.links.sql;
 
 import com.adr.data.sql.SQLEngine;
-import com.adr.dataclient.links.ViewLinkType;
 import com.adr.hellocommon.utils.FXMLUtil;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
@@ -14,7 +13,7 @@ import javafx.scene.layout.GridPane;
 /**
  * Created by adrian on 27/09/17.
  */
-class ViewLinkTypeSQL implements ViewLinkType {
+class ViewLinkTypeSQL {
 
     @FXML
     GridPane root;
@@ -47,7 +46,6 @@ class ViewLinkTypeSQL implements ViewLinkType {
         password.setText(datasql.getPassword());
     }
 
-    @Override
     public Node getNode() {
         return root;
     }

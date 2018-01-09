@@ -5,12 +5,16 @@
  */
 package com.adr.dataclient.links;
 
+import com.adr.data.DataLink;
+import com.adr.data.QueryLink;
+
 /**
  *
  * @author adrian
  */
 public interface AppLink {
-    public void create();
-    public void destroy(); 
-    public AppDataQueryLink get();
+    void create();
+    void destroy(); 
+    DataLink getDataLink();    
+    QueryLink getQueryLink();
 }

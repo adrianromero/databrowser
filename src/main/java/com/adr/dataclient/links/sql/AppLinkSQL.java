@@ -15,14 +15,12 @@ import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javafx.collections.ObservableList;
-import com.adr.dataclient.links.AppDataQueryLink;
 
 /**
  *
  * @author adrian
  */
-class AppLinkSQL implements AppLink, AppDataQueryLink {
+class AppLinkSQL implements AppLink {
 
     private final static Logger LOG = Logger.getLogger(AppLinkSQL.class.getName());
     
@@ -70,11 +68,6 @@ class AppLinkSQL implements AppLink, AppDataQueryLink {
         cpds = null;
         engine = null;
     }
-
-    @Override
-    public AppDataQueryLink get() {
-        return this;
-     }    
 
     @Override
     public QueryLink getQueryLink() {
