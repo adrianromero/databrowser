@@ -23,7 +23,14 @@ class ConfigLinkSQL extends ConfigLink {
     public ConfigLinkSQL(ConfigLinkTypeSQL type, String name) {
         super(name);
         this.type = type;
-        this.datasql = new DataSQL(SQLEngine.POSTGRESQL, "org.postgresql.Driver", "jdbc:postgresql://localhost:5432/hellodb", "tad", "tad");
+        this.datasql = new DataSQL(SQLEngine.POSTGRESQL, 
+                "org.postgresql.Driver", 
+                "jdbc:postgresql://localhost:5432/hellodb", 
+                "tad", 
+                "tad", 
+                true, 
+                DataSQL.genSecret(), 
+                500000L);
     }
 
     @Override
@@ -43,7 +50,10 @@ class ConfigLinkSQL extends ConfigLink {
                 p.getProperty(prefix + ".driver"),
                 p.getProperty(prefix + ".url"),
                 p.getProperty(prefix + ".username"),
-                p.getProperty(prefix + ".password"));
+                p.getProperty(prefix + ".password"),
+                Boolean.parseBoolean(p.getProperty(prefix + ".security")),
+                p.getProperty(prefix + ".secret"),
+                DataSQL.parseExpires(p.getProperty(prefix + ".expires")));
     }
 
     @Override
@@ -53,6 +63,9 @@ class ConfigLinkSQL extends ConfigLink {
         p.setProperty(prefix + ".url", datasql.getUrl());
         p.setProperty(prefix + ".username", datasql.getUsername());
         p.setProperty(prefix + ".password", datasql.getPassword());
+        p.setProperty(prefix + ".security", Boolean.toString(datasql.isSecurity()));
+        p.setProperty(prefix + ".secret", datasql.getSecret());
+        p.setProperty(prefix + ".expires", Long.toString(datasql.getExpires()));
     }
 
     @Override

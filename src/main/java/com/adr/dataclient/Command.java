@@ -108,6 +108,22 @@ public class Command {
     
     public void start() {
         appdataquerylinks.getSelectionModel().selectFirst();
+        
+        commandHeader.getNode().clear();
+        commandOutput.getNode().clear();
+        
+        Record r = new RecordMap(
+                new Entry("COLLECTION.KEY", "USERNAME"),
+                new Entry("ID.KEY", VariantString.NULL),
+                new Entry("NAME", "guest"),
+                new Entry("DISPLAYNAME", VariantString.NULL),
+                new Entry("ROLE_ID", VariantString.NULL));
+        try {
+            commandField.getNode().replaceText(RecordsSerializer.write(r));
+            commandField.getNode().position(0, 0);
+        } catch (IOException ex) {
+            Logger.getLogger(Command.class.getName()).log(Level.SEVERE, null, ex);
+        }        
     }
 
     @FXML
@@ -167,19 +183,6 @@ public class Command {
                 actionHasAuthorization.setDisable(newValue.getQueryLink() == null);   
             }
         });
-
-        Record r = new RecordMap(
-                new Entry("COLLECTION.KEY", "USERNAME"),
-                new Entry("ID.KEY", VariantString.NULL),
-                new Entry("NAME", "guest"),
-                new Entry("DISPLAYNAME", VariantString.NULL),
-                new Entry("ROLE_ID", VariantString.NULL));
-        try {
-            commandField.getNode().replaceText(RecordsSerializer.write(r));
-            commandField.getNode().position(0, 0);
-        } catch (IOException ex) {
-            Logger.getLogger(Command.class.getName()).log(Level.SEVERE, null, ex);
-        }
     }
     @FXML
     void onOutputFile(ActionEvent event) {
@@ -280,7 +283,7 @@ public class Command {
 
     private void printLoginResult(AsyncResult<String> asyncresult) {
         try {
-            Record header = new RecordMap(new Entry("Authorization", asyncresult.getResult()));
+            Record header = new RecordMap(new Entry("AUTHORIZATION", asyncresult.getResult()));
             commandHeader.getNode().replaceText(RecordsSerializer.write(header));
             commandHeader.getNode().selectRange(0, 0);
             commandOutput.getNode().appendText(String.format(resources.getString("result.login"), asyncresult.getElapsed().elapsed()));

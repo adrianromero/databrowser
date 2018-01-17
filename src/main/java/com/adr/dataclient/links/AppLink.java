@@ -15,6 +15,10 @@ import com.adr.data.QueryLink;
 public interface AppLink {
     void create();
     void destroy(); 
-    DataLink getDataLink();    
-    QueryLink getQueryLink();
+    default DataLink getDataLink() {
+        return null;
+    }    
+    default QueryLink getQueryLink() {
+        return null;
+    }
 }

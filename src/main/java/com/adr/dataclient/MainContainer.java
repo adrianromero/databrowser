@@ -7,6 +7,8 @@ package com.adr.dataclient;
 
 import com.adr.hellocommon.dialog.MessageUtils;
 import com.adr.hellocommon.utils.FXMLUtil;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.Parent;
@@ -19,6 +21,8 @@ import javafx.scene.layout.StackPane;
  */
 public class MainContainer {
 
+    private final static Logger LOG = Logger.getLogger(MainContainer.class.getName());
+    
     @FXML private StackPane root;
     @FXML private StackPane appcontainer;
     @FXML private Button connect;
@@ -54,7 +58,14 @@ public class MainContainer {
     @FXML
     void actionConnect(ActionEvent event) {
         
-        app.constructLinks(linkscontroller.getConfigLinks());
+        try {
+            app.constructLinks(linkscontroller.getConfigLinks());
+        } catch (Exception ex) {
+            LOG.log(Level.SEVERE, "Connection error", ex);
+            app.destroyLinks();
+            MessageUtils.showWarning(root, "chungy", "messge", e ->{});   
+            return;
+        }
         
         disconnect.setVisible(true);
         commandcontroller.getNode().setVisible(true);

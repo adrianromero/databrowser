@@ -3,7 +3,7 @@ package com.adr.dataclient;
 import com.adr.dataclient.links.ConfigLink;
 import com.adr.dataclient.links.ConfigLinkType;
 import com.adr.dataclient.links.sql.ConfigLinkTypeSQL;
-import com.adr.dataclient.links.sql.ConfigLinkTypeSQLSecured;
+import com.adr.dataclient.links.web.ConfigLinkTypeWebQuery;
 import com.adr.fonticon.FontAwesome;
 import com.adr.fonticon.IconBuilder;
 import com.adr.hellocommon.utils.FXMLUtil;
@@ -36,7 +36,7 @@ public class Links {
 
     private final ConfigLinkType[] configLinkTypeList = new ConfigLinkType[]{
         new ConfigLinkTypeSQL(),
-        new ConfigLinkTypeSQLSecured()
+        new ConfigLinkTypeWebQuery()
     };
 
     @FXML

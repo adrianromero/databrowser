@@ -78,7 +78,10 @@ public abstract class SyntaxArea {
     }
 
     private void applyHighlighting(StyleSpans<Collection<String>> highlighting) {
-        codeArea.setStyleSpans(0, highlighting);
+        String text = codeArea.getText();
+        if (text != null && !text.isEmpty()) {
+         codeArea.setStyleSpans(0, highlighting);
+        }
     }
 
     protected abstract Token[] getTokens();

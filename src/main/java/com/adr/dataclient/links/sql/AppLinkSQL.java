@@ -7,12 +7,25 @@ package com.adr.dataclient.links.sql;
 
 import com.adr.data.DataLink;
 import com.adr.data.QueryLink;
+import com.adr.data.route.ReducerDataIdentity;
+import com.adr.data.route.ReducerDataLink;
+import com.adr.data.route.ReducerQueryIdentity;
+import com.adr.data.route.ReducerQueryLink;
+import com.adr.data.security.SecureCommands;
+import com.adr.data.security.jwt.ReducerDataJWTAuthorization;
+import com.adr.data.security.jwt.ReducerDataJWTVerify;
+import com.adr.data.security.jwt.ReducerJWTCurrentUser;
+import com.adr.data.security.jwt.ReducerJWTLogin;
+import com.adr.data.security.jwt.ReducerQueryJWTAuthorization;
+import com.adr.data.security.jwt.ReducerQueryJWTVerify;
 import com.adr.data.sql.SQLDataLink;
 import com.adr.data.sql.SQLEngine;
 import com.adr.data.sql.SQLQueryLink;
 import com.adr.dataclient.links.AppLink;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import java.nio.charset.StandardCharsets;
+import java.util.Collections;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -29,19 +42,11 @@ class AppLinkSQL implements AppLink {
     private HikariDataSource cpds;
     private SQLEngine engine;
     private QueryLink querylink;
-    private DataLink datalink;
+    private DataLink datalink; 
     
     public AppLinkSQL(String name, DataSQL datasql) {
         this.name = name;
         this.datasql = datasql;
-    }
-
-    private QueryLink createQueryLink() {
-        return new SQLQueryLink(cpds, engine);   
-    }
-
-    private DataLink createDataLink() {
-        return new SQLDataLink(cpds, engine);
     }
 
     @Override
@@ -55,8 +60,26 @@ class AppLinkSQL implements AppLink {
         engine = datasql.getEngine();
         LOG.log(Level.INFO, "Database engine = {0}", engine.toString());
 
-        querylink = createQueryLink();
-        datalink = createDataLink();
+        if (datasql.isSecurity()) {
+            QueryLink localquerylink = new SQLQueryLink(cpds, engine, SecureCommands.QUERIES);   
+            DataLink localdatalink = new SQLDataLink(cpds, engine, SecureCommands.COMMANDS);   
+            
+            byte[] secret = datasql.getSecret().getBytes(StandardCharsets.UTF_8);
+            
+            querylink =  new ReducerQueryLink(
+                    new ReducerQueryJWTVerify(secret),
+                    new ReducerJWTLogin(localquerylink, secret, datasql.getExpires()),
+                    new ReducerJWTCurrentUser(),
+                    new ReducerQueryJWTAuthorization(localquerylink, Collections.emptySet(), Collections.emptySet()),
+                    new ReducerQueryIdentity(localquerylink));  
+            datalink = new ReducerDataLink(
+                    new ReducerDataJWTVerify(secret),
+                    new ReducerDataJWTAuthorization(localquerylink, Collections.emptySet(), Collections.emptySet()),
+                    new ReducerDataIdentity(localdatalink));
+        } else {
+            querylink = new SQLQueryLink(cpds, engine);
+            datalink = new SQLDataLink(cpds, engine);
+        }
     }
 
     @Override
