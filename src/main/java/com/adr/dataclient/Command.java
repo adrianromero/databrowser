@@ -10,7 +10,6 @@ import com.adr.data.DataLink;
 import com.adr.data.QueryLink;
 import com.adr.data.record.Entry;
 import com.adr.data.record.Record;
-import com.adr.data.record.RecordMap;
 import com.adr.data.recordparser.RecordsSerializer;
 import com.adr.data.security.ReducerLogin;
 import com.adr.data.var.VariantString;
@@ -112,7 +111,7 @@ public class Command {
         commandHeader.getNode().clear();
         commandOutput.getNode().clear();
         
-        Record r = new RecordMap(
+        Record r = new Record(
                 new Entry("COLLECTION.KEY", "USERNAME"),
                 new Entry("ID.KEY", VariantString.NULL),
                 new Entry("NAME", "guest"),
@@ -283,7 +282,7 @@ public class Command {
 
     private void printLoginResult(AsyncResult<String> asyncresult) {
         try {
-            Record header = new RecordMap(new Entry("AUTHORIZATION", asyncresult.getResult()));
+            Record header = new Record(new Entry("AUTHORIZATION", asyncresult.getResult()));
             commandHeader.getNode().replaceText(RecordsSerializer.write(header));
             commandHeader.getNode().selectRange(0, 0);
             commandOutput.getNode().appendText(String.format(resources.getString("result.login"), asyncresult.getElapsed().elapsed()));
