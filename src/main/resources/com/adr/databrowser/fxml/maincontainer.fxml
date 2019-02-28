@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.StackPane?>
+
+<StackPane fx:id="root" prefHeight="500.0" prefWidth="900.0" styleClass="maincontainer" xmlns="http://javafx.com/javafx/8.0.151" xmlns:fx="http://javafx.com/fxml/1">
+   <children>
+      <BorderPane>
+         <top>
+            <HBox styleClass="header" BorderPane.alignment="CENTER">
+               <children>
+                  <Label maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" styleClass="headertitle" text="Data Browser" HBox.hgrow="SOMETIMES" />
+                  <StackPane>
+                     <children>
+                        <Button fx:id="disconnect" focusTraversable="false" mnemonicParsing="false" onAction="#actionDisconnect" text="Disconnect" StackPane.alignment="CENTER_RIGHT" />
+                        <Button fx:id="connect" focusTraversable="false" mnemonicParsing="false" onAction="#actionConnect" text="Connect" StackPane.alignment="CENTER_RIGHT" />
+                     </children>
+                  </StackPane>
+               </children>
+            </HBox>
+         </top>
+         <center>
+            <StackPane fx:id="appcontainer" prefHeight="150.0" prefWidth="200.0" BorderPane.alignment="CENTER" />
+         </center>
+      </BorderPane>
+   </children>
+</StackPane>

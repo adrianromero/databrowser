@@ -22,7 +22,7 @@ apply plugin: 'application'
 group = 'com.github.adrianromero'
 version = '1.0.0'
 
-mainClassName = 'com.adr.dataclient.Main'
+mainClassName = 'com.adr.databrowser.Main'
 
 description = """"""
 
