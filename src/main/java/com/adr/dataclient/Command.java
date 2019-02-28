@@ -5,10 +5,9 @@
  */
 package com.adr.dataclient;
 
+import com.adr.data.Link;
 import com.adr.data.DataException;
-import com.adr.data.DataLink;
-import com.adr.data.QueryLink;
-import com.adr.data.record.Entry;
+import com.adr.data.record.Header;
 import com.adr.data.record.Record;
 import com.adr.data.recordparser.RecordsSerializer;
 import com.adr.data.security.ReducerLogin;
@@ -66,14 +65,12 @@ public class Command {
     private Label tasks;
 
     @FXML
-    private ChoiceBox<AppLink> appdataquerylinks;
+    private ChoiceBox<AppLink> appcommandquerylinks;
 
     @FXML
     Button actionExecute;
     @FXML
     Button actionQuery;
-    @FXML
-    Button actionFind;
     @FXML
     Button actionLogin;
     @FXML
@@ -106,20 +103,21 @@ public class Command {
     }
     
     public void start() {
-        appdataquerylinks.getSelectionModel().selectFirst();
+        appcommandquerylinks.getSelectionModel().selectFirst();
         
         commandHeader.getNode().clear();
         commandOutput.getNode().clear();
         
         Record r = new Record(
-                new Entry("COLLECTION.KEY", "USERNAME"),
-                new Entry("ID.KEY", VariantString.NULL),
-                new Entry("NAME", "guest"),
-                new Entry("DISPLAYNAME", VariantString.NULL),
-                new Entry("ROLE_ID", VariantString.NULL));
+                Record.entry("COLLECTION.KEY", "USERNAME"),
+                Record.entry("ID.KEY", VariantString.NULL),
+                Record.entry("NAME", "guest"),
+                Record.entry("DISPLAYNAME", VariantString.NULL),
+                Record.entry("ROLE_ID", VariantString.NULL));
         try {
             commandField.getNode().replaceText(RecordsSerializer.write(r));
             commandField.getNode().position(0, 0);
+            commandField.getNode().requestFocus();
         } catch (IOException ex) {
             Logger.getLogger(Command.class.getName()).log(Level.SEVERE, null, ex);
         }        
@@ -130,7 +128,6 @@ public class Command {
 
         actionExecute.setGraphic(IconBuilder.create(FontAwesome.FA_CLOUD_UPLOAD).build());
         actionQuery.setGraphic(IconBuilder.create(FontAwesome.FA_CLOUD_DOWNLOAD).build());
-        actionFind.setGraphic(IconBuilder.create(FontAwesome.FA_SEARCH).build());
         actionLogin.setGraphic(IconBuilder.create(FontAwesome.FA_SIGN_IN).build());
         actionCurrentUser.setGraphic(IconBuilder.create(FontAwesome.FA_USER).build());
         actionHasAuthorization.setGraphic(IconBuilder.create(FontAwesome.FA_LOCK).build());
@@ -138,7 +135,6 @@ public class Command {
         
         actionExecute.setDisable(true);
         actionQuery.setDisable(true);
-        actionFind.setDisable(true);
         actionLogin.setDisable(true);            
         actionCurrentUser.setDisable(true);            
         actionHasAuthorization.setDisable(true);            
@@ -163,20 +159,17 @@ public class Command {
         commandOutput.getNode().setEditable(false);
         outputContainer.getChildren().add(new VirtualizedScrollPane<>(commandOutput.getNode()));
 
-        appdataquerylinks.setItems(app.getDataQueryLinks());
-        // appdatalinks.getSelectionModel().selectFirst();
-        appdataquerylinks.valueProperty().addListener((ObservableValue<? extends AppLink> observable, AppLink oldValue, AppLink newValue) -> {
+        appcommandquerylinks.setItems(app.getCommandQueryLinks());
+        appcommandquerylinks.valueProperty().addListener((ObservableValue<? extends AppLink> observable, AppLink oldValue, AppLink newValue) -> {
             if (newValue == null) {
                 actionExecute.setDisable(true);
                 actionQuery.setDisable(true);
-                actionFind.setDisable(true);
                 actionLogin.setDisable(true);            
                 actionCurrentUser.setDisable(true);            
                 actionHasAuthorization.setDisable(true);             
             } else {
-                actionExecute.setDisable(newValue.getDataLink() == null);
+                actionExecute.setDisable(newValue.getCommandLink() == null);
                 actionQuery.setDisable(newValue.getQueryLink() == null);
-                actionFind.setDisable(newValue.getQueryLink() == null);
                 actionLogin.setDisable(newValue.getQueryLink() == null);            
                 actionCurrentUser.setDisable(newValue.getQueryLink() == null);            
                 actionHasAuthorization.setDisable(newValue.getQueryLink() == null);   
@@ -198,7 +191,7 @@ public class Command {
 
         login.showDialog(root, (String user, String password) -> {
             beginTask();
-            login(appdataquerylinks.getValue().getQueryLink(), user, password)
+            login(appcommandquerylinks.getValue().getQueryLink(), user, password)
                     .whenComplete(runLater(this::endTask))
                     .thenApply(runLater(this::printLoginResult))
                     .exceptionally(runLater((Throwable t) -> printException(resources.getString("request.login"), t)));
@@ -209,7 +202,7 @@ public class Command {
     @FXML
     void onCurrentUser(ActionEvent event) {
         beginTask();
-        current(appdataquerylinks.getValue().getQueryLink(), commandHeader.getNode().getText())
+        current(appcommandquerylinks.getValue().getQueryLink(), commandHeader.getNode().getText())
                 .whenComplete(runLater(this::endTask))
                 .thenApply(runLater(this::printCurrentResult))
                 .exceptionally(runLater((Throwable t) -> printException(resources.getString("request.current"), t)));
@@ -219,7 +212,7 @@ public class Command {
     void onHasAuthorization(ActionEvent event) {
         authorization.showDialog(root, (String resource) -> {         
             beginTask();
-            hasAuthorization(appdataquerylinks.getValue().getQueryLink(), commandHeader.getNode().getText(), resource)
+            hasAuthorization(appcommandquerylinks.getValue().getQueryLink(), commandHeader.getNode().getText(), resource)
                     .whenComplete(runLater(this::endTask))
                     .thenApply(runLater(this::printHasAuthorizationResult))
                     .exceptionally(runLater((Throwable t) -> printException(resources.getString("request.hasauthorization"), t)));
@@ -229,27 +222,18 @@ public class Command {
     @FXML
     void onQuery(ActionEvent event) {
         beginTask();
-        query(appdataquerylinks.getValue().getQueryLink(), commandHeader.getNode().getText(), commandField.getNode().getText())
+        process(appcommandquerylinks.getValue().getQueryLink(), commandHeader.getNode().getText(), commandField.getNode().getText())
                 .whenComplete(runLater(this::endTask))
                 .thenApply(runLater(this::printQueryResult))
                 .exceptionally(runLater((Throwable t) -> printException(resources.getString("request.query"), t)));
     }
 
     @FXML
-    void onFind(ActionEvent event) {
-        beginTask();
-        find(appdataquerylinks.getValue().getQueryLink(), commandHeader.getNode().getText(), commandField.getNode().getText())
-                .whenComplete(runLater(this::endTask))
-                .thenApply(runLater(this::printFindResult))
-                .exceptionally(runLater((Throwable t) -> printException(resources.getString("request.find"), t)));
-    }
-
-    @FXML
     void onExecute(ActionEvent event) {
         beginTask();
-        execute(appdataquerylinks.getValue().getDataLink(), commandHeader.getNode().getText(), commandField.getNode().getText())
+        process(appcommandquerylinks.getValue().getCommandLink(), commandHeader.getNode().getText(), commandField.getNode().getText())
                 .whenComplete(runLater(this::endTask))
-                .thenApply(runLater(this::printExecuteResult))
+                .thenApply(runLater(this::printQueryResult))
                 .exceptionally(runLater((Throwable t) -> printException(resources.getString("request.execute"), t)));
     }
 
@@ -282,7 +266,7 @@ public class Command {
 
     private void printLoginResult(AsyncResult<String> asyncresult) {
         try {
-            Record header = new Record(new Entry("AUTHORIZATION", asyncresult.getResult()));
+            Record header = new Record(Record.entry("AUTHORIZATION", asyncresult.getResult()));
             commandHeader.getNode().replaceText(RecordsSerializer.write(header));
             commandHeader.getNode().selectRange(0, 0);
             commandOutput.getNode().appendText(String.format(resources.getString("result.login"), asyncresult.getElapsed().elapsed()));
@@ -290,22 +274,6 @@ public class Command {
         } catch (IOException ex) {
             Logger.getLogger(Command.class.getName()).log(Level.SEVERE, null, ex);
             printException(resources.getString("request.login"), ex);
-        }
-    }
-
-    private void printFindResult(AsyncResult<Record> asyncresult) {
-        try {
-            if (asyncresult.getResult() == null) {
-                commandOutput.getNode().appendText(String.format(resources.getString("result.findsuccess0"), asyncresult.getElapsed().elapsed()));
-                commandOutput.getNode().requestFollowCaret();
-            } else {
-                commandOutput.getNode().appendText(String.format(resources.getString("result.findsuccess1"), asyncresult.getElapsed().elapsed()));
-                commandOutput.getNode().appendText(RecordsSerializer.write(asyncresult.getResult()) + "\n");
-                commandOutput.getNode().requestFollowCaret();
-            }
-        } catch (IOException ex) {
-            Logger.getLogger(Command.class.getName()).log(Level.SEVERE, null, ex);
-            printException(resources.getString("request.find"), ex);
         }
     }
 
@@ -348,11 +316,6 @@ public class Command {
         }
     }
 
-    private void printExecuteResult(AsyncResult<Void> asyncresult) {
-        commandOutput.getNode().appendText(String.format(resources.getString("result.execute"), asyncresult.getElapsed().elapsed()));
-        commandOutput.getNode().requestFollowCaret();
-    }
-
     private void printException(String requestname, Throwable ex) {
         commandOutput.getNode().appendText(String.format(resources.getString("result.exception"), requestname, ex.getMessage().replaceAll("\n", " ")));
         commandOutput.getNode().requestFollowCaret();
@@ -362,7 +325,7 @@ public class Command {
     // Asynchronous operations
     //////////////////////////
     //
-    private CompletableFuture<AsyncResult<String>> login(QueryLink link, String user, String password) {
+    private CompletableFuture<AsyncResult<String>> login(Link link, String user, String password) {
         Elapsed e = new Elapsed();
         return CompletableFuture.supplyAsync(() -> {
             try {
@@ -373,7 +336,7 @@ public class Command {
         });
     }
 
-    private CompletableFuture<AsyncResult<Record>> current(QueryLink link, String headerText) {
+    private CompletableFuture<AsyncResult<Record>> current(Link link, String headerText) {
         Elapsed e = new Elapsed();
         return CompletableFuture.supplyAsync(() -> {
             try {
@@ -384,7 +347,7 @@ public class Command {
         });
     }
 
-    private CompletableFuture<AsyncResult<HasAuthorizationResult>> hasAuthorization(QueryLink link, String headerText, String resource) {
+    private CompletableFuture<AsyncResult<HasAuthorizationResult>> hasAuthorization(Link link, String headerText, String resource) {
         Elapsed e = new Elapsed();
         return CompletableFuture.supplyAsync(() -> {
             try {
@@ -396,45 +359,44 @@ public class Command {
         });
     }
 
-    private CompletableFuture<AsyncResult<List<Record>>> query(QueryLink link, String headerText, String filterText) {
+//    private CompletableFuture<AsyncResult<List<Record>>> query(Link link, String headerText, String filterText) {
+//        Elapsed e = new Elapsed();
+//        return CompletableFuture.supplyAsync(() -> {
+//            try {
+//                return new AsyncResult<>(link.query(readHeader(headerText), readFilter(filterText)), e);
+//            } catch (IOException | DataException ex) {
+//                throw new CompletionException(ex);
+//            }
+//        });
+//    }
+
+//    private CompletableFuture<AsyncResult<Record>> find(Link link, String headerText, String filterText) {
+//        Elapsed e = new Elapsed();
+//        return CompletableFuture.supplyAsync(() -> {
+//            try {
+//                return new AsyncResult<>(link.find(readHeader(headerText), readFilter(filterText)), e);
+//            } catch (IOException | DataException ex) {
+//                throw new CompletionException(ex);
+//            }
+//        });
+//    }
+
+    private CompletableFuture<AsyncResult<List<Record>>> process(Link link, String headerText, String listText) {
         Elapsed e = new Elapsed();
         return CompletableFuture.supplyAsync(() -> {
             try {
-                return new AsyncResult<>(link.query(readHeader(headerText), readFilter(filterText)), e);
+                return new AsyncResult<>(link.process(readHeader(headerText), readList(listText)), e);
             } catch (IOException | DataException ex) {
                 throw new CompletionException(ex);
             }
         });
     }
 
-    private CompletableFuture<AsyncResult<Record>> find(QueryLink link, String headerText, String filterText) {
-        Elapsed e = new Elapsed();
-        return CompletableFuture.supplyAsync(() -> {
-            try {
-                return new AsyncResult<>(link.find(readHeader(headerText), readFilter(filterText)), e);
-            } catch (IOException | DataException ex) {
-                throw new CompletionException(ex);
-            }
-        });
-    }
-
-    private CompletableFuture<AsyncResult<Void>> execute(DataLink link, String headerText, String listText) {
-        Elapsed e = new Elapsed();
-        return CompletableFuture.supplyAsync(() -> {
-            try {
-                link.execute(readHeader(headerText), readList(listText));
-                return new AsyncResult<>(null, e);
-            } catch (IOException | DataException ex) {
-                throw new CompletionException(ex);
-            }
-        });
-    }
-
-    private Record readHeader(String headerText) throws IOException {
+    private Header readHeader(String headerText) throws IOException {
         if (headerText.trim().isEmpty()) {
-            return Record.EMPTY;
+            return Header.EMPTY;
         } else {
-            return RecordsSerializer.read(headerText);
+            return new Header(RecordsSerializer.read(headerText));
         }
     }
 
@@ -446,7 +408,7 @@ public class Command {
         return RecordsSerializer.readList(listText);
     }
 
-    private <T> Function<T, ? extends Void> runLater(Consumer<T> consumer) {
+    private <T> Function<T, Void> runLater(Consumer<T> consumer) {
         return (T t) -> {
             Platform.runLater(() -> {
                 consumer.accept(t);

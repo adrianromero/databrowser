@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.CheckMenuItem?>
 <?import javafx.scene.control.ChoiceBox?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.MenuButton?>
+<?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.Separator?>
-<?import javafx.scene.control.SplitPane?>
+<?import javafx.scene.control.TitledPane?>
 <?import javafx.scene.control.ToolBar?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
@@ -15,49 +15,64 @@
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 
-<BorderPane fx:id="root" prefHeight="598.0" prefWidth="1010.0" xmlns="http://javafx.com/javafx/8.0.151" xmlns:fx="http://javafx.com/fxml/1">
+<BorderPane fx:id="root" prefHeight="598.0" prefWidth="1010.0" xmlns="http://javafx.com/javafx/8.0.201" xmlns:fx="http://javafx.com/fxml/1">
    <top>
       <ToolBar prefHeight="40.0" prefWidth="200.0" BorderPane.alignment="CENTER">
         <items>
           <Button fx:id="actionExecute" focusTraversable="false" mnemonicParsing="false" onAction="#onExecute" />
             <Button fx:id="actionQuery" focusTraversable="false" layoutX="10.0" layoutY="11.0" mnemonicParsing="false" onAction="#onQuery" />
-            <Button fx:id="actionFind" focusTraversable="false" layoutX="85.0" layoutY="11.0" mnemonicParsing="false" onAction="#onFind" />
             <Separator orientation="VERTICAL" />
             <Button fx:id="actionLogin" focusTraversable="false" mnemonicParsing="false" onAction="#onLogin" />
             <Button fx:id="actionCurrentUser" focusTraversable="false" mnemonicParsing="false" onAction="#onCurrentUser" />
             <Button fx:id="actionHasAuthorization" focusTraversable="false" mnemonicParsing="false" onAction="#onHasAuthorization" />
             <Separator orientation="VERTICAL" />
-            <ChoiceBox fx:id="appdataquerylinks" focusTraversable="false" prefWidth="150.0" />
-            <Separator orientation="VERTICAL" />
-          <Button fx:id="actionClear" focusTraversable="false" mnemonicParsing="false" onAction="#onClear" />
-            <MenuButton focusTraversable="false" mnemonicParsing="false" text="%action.output">
-               <items>
-                  <CheckMenuItem mnemonicParsing="false" selected="true" text="%action.console" />
-                  <CheckMenuItem mnemonicParsing="false" onAction="#onOutputFile" text="%action.tofile" />
-                  <CheckMenuItem mnemonicParsing="false" text="%action.torequest" />
-               </items>
-            </MenuButton>
+            <ChoiceBox fx:id="appcommandquerylinks" focusTraversable="false" prefWidth="150.0" />
             <Pane HBox.hgrow="ALWAYS" />
             <Label fx:id="tasks" alignment="CENTER_RIGHT" contentDisplay="RIGHT" visible="false" />
         </items>
       </ToolBar>
    </top>
    <center>
-      <SplitPane dividerPositions="0.6" orientation="VERTICAL" BorderPane.alignment="CENTER">
-        <items>
-            <VBox spacing="5.0">
+      <ScrollPane fitToHeight="true" fitToWidth="true" BorderPane.alignment="CENTER">
+         <content>
+            <VBox>
                <children>
-                  <Label text="%command.header" />
-                  <StackPane fx:id="headerContainer" prefHeight="80.0" styleClass="scroll-pane" />
-                  <Label text="%command.request" />
-                  <StackPane fx:id="recordContainer" styleClass="scroll-pane" VBox.vgrow="SOMETIMES" />
+                  <TitledPane animated="false" expanded="false" text="%command.header" VBox.vgrow="SOMETIMES">
+                     <content>
+                        <StackPane fx:id="headerContainer" prefHeight="80.0" styleClass="scroll-pane" />
+                     </content>
+                  </TitledPane>
+                  <TitledPane animated="false" collapsible="false" maxHeight="1.7976931348623157E308" text="%command.request" VBox.vgrow="ALWAYS">
+                     <content>
+                        <StackPane fx:id="recordContainer" prefHeight="150.0" styleClass="scroll-pane" />
+                     </content>
+                  </TitledPane>
+                  <TitledPane animated="false" text="%command.output" VBox.vgrow="SOMETIMES">
+                     <content>
+                        <BorderPane styleClass="scroll-pane">
+                           <center>
+                              <StackPane fx:id="outputContainer" prefHeight="150.0" />
+                           </center>
+                           <top>
+                              <ToolBar prefHeight="40.0" prefWidth="200.0" BorderPane.alignment="CENTER">
+                                <items>
+                                  <Button fx:id="actionClear" focusTraversable="false" mnemonicParsing="false" onAction="#onClear" />
+                                    <MenuButton focusTraversable="false" mnemonicParsing="false" text="%action.output">
+                                       <items>
+                                          <CheckMenuItem mnemonicParsing="false" selected="true" text="%action.console" />
+                                          <CheckMenuItem mnemonicParsing="false" onAction="#onOutputFile" text="%action.tofile" />
+                                          <CheckMenuItem mnemonicParsing="false" text="%action.torequest" />
+                                       </items>
+                                    </MenuButton>
+                                </items>
+                              </ToolBar>
+                           </top>
+                        </BorderPane>
+                     </content>
+                  </TitledPane>
                </children>
-               <padding>
-                  <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
-               </padding>
             </VBox>
-            <StackPane fx:id="outputContainer" prefHeight="150.0" prefWidth="200.0" />
-        </items>
-      </SplitPane>
+         </content>
+      </ScrollPane>
    </center>
 </BorderPane>

@@ -5,8 +5,7 @@
  */
 package com.adr.dataclient.links;
 
-import com.adr.data.DataLink;
-import com.adr.data.QueryLink;
+import com.adr.data.Link;
 
 /**
  *
@@ -15,10 +14,10 @@ import com.adr.data.QueryLink;
 public interface AppLink {
     void create();
     void destroy(); 
-    default DataLink getDataLink() {
+    default Link getCommandLink() {
         return null;
     }    
-    default QueryLink getQueryLink() {
+    default Link getQueryLink() {
         return null;
     }
 }

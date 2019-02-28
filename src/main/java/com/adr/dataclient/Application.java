@@ -5,6 +5,10 @@
  */
 package com.adr.dataclient;
 
+import com.adr.data.Link;
+import com.adr.data.mem.MemCommandLink;
+import com.adr.data.mem.MemQueryLink;
+import com.adr.data.mem.Storage;
 import com.adr.dataclient.links.AppLink;
 import com.adr.dataclient.links.ConfigLink;
 import javafx.collections.FXCollections;
@@ -24,7 +28,7 @@ public class Application {
         applinks = FXCollections.observableArrayList();
     }
     
-    public ObservableList<AppLink> getDataQueryLinks() {
+    public ObservableList<AppLink> getCommandQueryLinks() {
         return applinks;
     }
 
@@ -35,6 +39,10 @@ public class Application {
             appl.create();
             applinks.add(appl);
         }
+        
+        AppLink mem = new TestAppLink();
+        mem.create();
+        applinks.add(mem);
     }
 
     public void destroyLinks() {
@@ -42,5 +50,39 @@ public class Application {
             l.destroy();
         }
         applinks.clear();
+    }
+        
+    private static class TestAppLink implements AppLink {
+            
+        private Link commandlink = null;
+        private Link querylink = null;
+
+        @Override
+        public void create() {
+            Storage storage = new Storage();
+            commandlink = new MemCommandLink(storage);
+            querylink = new MemQueryLink(storage);
+        }
+
+        @Override
+        public void destroy() {
+            commandlink = null;
+            querylink = null;
+        }
+
+        @Override
+        public Link getCommandLink() {
+            return commandlink;
+        }
+
+        @Override
+        public Link getQueryLink() {
+            return querylink;
+        }
+        
+        @Override
+        public String toString() {
+            return "Memory";
+        }
     }
 }

@@ -2,8 +2,6 @@ package com.adr.dataclient.links.sql;
 
 import com.adr.data.sql.SQLEngine;
 import com.adr.hellocommon.utils.FXMLUtil;
-import java.security.NoSuchAlgorithmException;
-import java.util.Base64;
 import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -14,8 +12,6 @@ import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
-import javax.crypto.KeyGenerator;
-import javax.crypto.SecretKey;
 
 /**
  * Created by adrian on 27/09/17.
@@ -90,7 +86,9 @@ class ViewLinkTypeSQL {
         password.setText(datasql.getPassword());
         security.setSelected(datasql.isSecurity());
         secret.setText(datasql.getSecret());
+        secret.setDisable(!datasql.isSecurity());
         expires.setText(Long.toString(datasql.getExpires()));
+        expires.setDisable(!datasql.isSecurity());
     }
     
     public Node getNode() {

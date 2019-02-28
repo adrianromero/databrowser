@@ -5,10 +5,8 @@
  */
 package com.adr.dataclient.links.web;
 
-import com.adr.data.DataLink;
-import com.adr.data.QueryLink;
-import com.adr.data.http.WebDataLink;
-import com.adr.data.http.WebQueryLink;
+import com.adr.data.Link;
+import com.adr.data.http.WebLink;
 import com.adr.dataclient.links.AppLink;
 import java.util.logging.Logger;
 import okhttp3.OkHttpClient;
@@ -24,8 +22,8 @@ public class AppLinkWebQuery implements AppLink {
     private final String name;
     private final DataURLs urls;
     
-    private QueryLink querylink;
-    private DataLink datalink;
+    private Link querylink;
+    private Link commandlink;
     
     public AppLinkWebQuery(String name, DataURLs urls) {
         this.name = name;
@@ -35,24 +33,24 @@ public class AppLinkWebQuery implements AppLink {
     @Override
     public void create() {
         OkHttpClient client = new OkHttpClient.Builder().build();      
-        querylink = urls.getUrlquery().isEmpty() ? null : new WebQueryLink(urls.getUrlquery(), client);
-        datalink = urls.getUrldata().isEmpty() ? null : new WebDataLink(urls.getUrldata(), client);
+        querylink = urls.getUrlquery().isEmpty() ? null : new WebLink(urls.getUrlquery(), client);
+        commandlink = urls.getUrldata().isEmpty() ? null : new WebLink(urls.getUrldata(), client);
     }
 
     @Override
     public void destroy() {
         querylink = null;
-        datalink = null;
+        commandlink = null;
     }
 
     @Override
-    public QueryLink getQueryLink() {
+    public Link getQueryLink() {
         return querylink;
     }
     
     @Override
-    public DataLink getDataLink() {
-        return datalink;
+    public Link getCommandLink() {
+        return commandlink;
     }
 
     @Override

@@ -5,20 +5,15 @@
  */
 package com.adr.dataclient.links.sql;
 
-import com.adr.data.DataLink;
-import com.adr.data.QueryLink;
-import com.adr.data.route.ReducerDataIdentity;
-import com.adr.data.route.ReducerDataLink;
-import com.adr.data.route.ReducerQueryIdentity;
-import com.adr.data.route.ReducerQueryLink;
-import com.adr.data.security.SecureCommands;
-import com.adr.data.security.jwt.ReducerDataJWTAuthorization;
-import com.adr.data.security.jwt.ReducerDataJWTVerify;
+import com.adr.data.Link;
+import com.adr.data.route.ReducerIdentity;
+import com.adr.data.route.ReducerLink;
+import com.adr.data.security.SecureSentences;
+import com.adr.data.security.jwt.ReducerJWTAuthorization;
+import com.adr.data.security.jwt.ReducerJWTVerify;
 import com.adr.data.security.jwt.ReducerJWTCurrentUser;
 import com.adr.data.security.jwt.ReducerJWTLogin;
-import com.adr.data.security.jwt.ReducerQueryJWTAuthorization;
-import com.adr.data.security.jwt.ReducerQueryJWTVerify;
-import com.adr.data.sql.SQLDataLink;
+import com.adr.data.sql.SQLCommandLink;
 import com.adr.data.sql.SQLEngine;
 import com.adr.data.sql.SQLQueryLink;
 import com.adr.dataclient.links.AppLink;
@@ -41,8 +36,8 @@ class AppLinkSQL implements AppLink {
     private final DataSQL datasql;
     private HikariDataSource cpds;
     private SQLEngine engine;
-    private QueryLink querylink;
-    private DataLink datalink; 
+    private Link querylink;
+    private Link commandlink; 
     
     public AppLinkSQL(String name, DataSQL datasql) {
         this.name = name;
@@ -61,31 +56,31 @@ class AppLinkSQL implements AppLink {
         LOG.log(Level.INFO, "Database engine = {0}", engine.toString());
 
         if (datasql.isSecurity()) {
-            QueryLink localquerylink = new SQLQueryLink(cpds, engine, SecureCommands.QUERIES);   
-            DataLink localdatalink = new SQLDataLink(cpds, engine, SecureCommands.COMMANDS);   
+            Link localquerylink = new SQLQueryLink(cpds, engine, SecureSentences.QUERIES);   
+            Link localcommandlink = new SQLCommandLink(cpds, engine, SecureSentences.COMMANDS);   
             
             byte[] secret = datasql.getSecret().getBytes(StandardCharsets.UTF_8);
             
-            querylink =  new ReducerQueryLink(
-                    new ReducerQueryJWTVerify(secret),
+            querylink =  new ReducerLink(
+                    new ReducerJWTVerify(secret),
                     new ReducerJWTLogin(localquerylink, secret, datasql.getExpires()),
                     new ReducerJWTCurrentUser(),
-                    new ReducerQueryJWTAuthorization(localquerylink, Collections.emptySet(), Collections.emptySet()),
-                    new ReducerQueryIdentity(localquerylink));  
-            datalink = new ReducerDataLink(
-                    new ReducerDataJWTVerify(secret),
-                    new ReducerDataJWTAuthorization(localquerylink, Collections.emptySet(), Collections.emptySet()),
-                    new ReducerDataIdentity(localdatalink));
+                    new ReducerJWTAuthorization(localquerylink, "QUERY", Collections.emptySet(), Collections.emptySet()),
+                    new ReducerIdentity(localquerylink));  
+            commandlink = new ReducerLink(
+                    new ReducerJWTVerify(secret),
+                    new ReducerJWTAuthorization(localquerylink, "EXECUTE", Collections.emptySet(), Collections.emptySet()),
+                    new ReducerIdentity(localcommandlink));
         } else {
             querylink = new SQLQueryLink(cpds, engine);
-            datalink = new SQLDataLink(cpds, engine);
+            commandlink = new SQLCommandLink(cpds, engine);
         }
     }
 
     @Override
     public void destroy() {
         querylink = null;
-        datalink = null;
+        commandlink = null;
 
         cpds.close();
         cpds = null;
@@ -93,13 +88,13 @@ class AppLinkSQL implements AppLink {
     }
 
     @Override
-    public QueryLink getQueryLink() {
+    public Link getQueryLink() {
         return querylink;
     }
 
     @Override
-    public DataLink getDataLink() {
-        return datalink;
+    public Link getCommandLink() {
+        return commandlink;
     }
     
     @Override
