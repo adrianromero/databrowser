@@ -20,7 +20,7 @@ import com.adr.databrowser.links.ConfigLink;
 import com.adr.databrowser.links.ConfigLinkType;
 import com.adr.databrowser.links.sql.ConfigLinkTypeSQL;
 import com.adr.databrowser.links.web.ConfigLinkTypeWebQuery;
-import com.adr.fonticon.FontAwesome;
+import com.adr.fonticon.IconFontGlyph;
 import com.adr.fonticon.IconBuilder;
 import com.adr.hellocommon.utils.FXMLUtil;
 import java.io.File;
@@ -100,10 +100,10 @@ public class Links {
     @FXML
     public void initialize() {
 
-        addLink.setGraphic(IconBuilder.create(FontAwesome.FA_PLUS, 18.0).styleClass("icon-fill").build());
-        removeLink.setGraphic(IconBuilder.create(FontAwesome.FA_MINUS, 18.0).styleClass("icon-fill").build());
-        upLink.setGraphic(IconBuilder.create(FontAwesome.FA_CHEVRON_UP, 18.0).styleClass("icon-fill").build());
-        downLink.setGraphic(IconBuilder.create(FontAwesome.FA_CHEVRON_DOWN, 18.0).styleClass("icon-fill").build());
+        addLink.setGraphic(IconBuilder.create(IconFontGlyph.FA_SOLID_PLUS, 18.0).styleClass("icon-fill").build());
+        removeLink.setGraphic(IconBuilder.create(IconFontGlyph.FA_SOLID_MINUS, 18.0).styleClass("icon-fill").build());
+        upLink.setGraphic(IconBuilder.create(IconFontGlyph.FA_SOLID_CHEVRON_UP, 18.0).styleClass("icon-fill").build());
+        downLink.setGraphic(IconBuilder.create(IconFontGlyph.FA_SOLID_CHEVRON_DOWN, 18.0).styleClass("icon-fill").build());
 
         configtype.setItems(FXCollections.observableArrayList(configLinkTypeList));
         configtype.getSelectionModel().clearSelection();

@@ -24,7 +24,7 @@ import com.adr.data.recordparser.RecordsSerializer;
 import com.adr.data.security.ReducerLogin;
 import com.adr.data.var.VariantString;
 import com.adr.databrowser.links.AppLink;
-import com.adr.fonticon.FontAwesome;
+import com.adr.fonticon.IconFontGlyph;
 import com.adr.fonticon.IconBuilder;
 import com.adr.hellocommon.utils.FXMLUtil;
 import javafx.animation.Animation;
@@ -137,12 +137,12 @@ public class Command {
     @FXML
     void initialize() {
 
-        actionExecute.setGraphic(IconBuilder.create(FontAwesome.FA_CLOUD_UPLOAD).build());
-        actionQuery.setGraphic(IconBuilder.create(FontAwesome.FA_CLOUD_DOWNLOAD).build());
-        actionLogin.setGraphic(IconBuilder.create(FontAwesome.FA_SIGN_IN).build());
-        actionCurrentUser.setGraphic(IconBuilder.create(FontAwesome.FA_USER).build());
-        actionHasAuthorization.setGraphic(IconBuilder.create(FontAwesome.FA_LOCK).build());
-        actionClear.setGraphic(IconBuilder.create(FontAwesome.FA_BAN).build());
+        actionExecute.setGraphic(IconBuilder.create(IconFontGlyph.FA_SOLID_UPLOAD).build());
+        actionQuery.setGraphic(IconBuilder.create(IconFontGlyph.FA_SOLID_DOWNLOAD).build());
+        actionLogin.setGraphic(IconBuilder.create(IconFontGlyph.FA_SOLID_SIGN_IN_ALT).build());
+        actionCurrentUser.setGraphic(IconBuilder.create(IconFontGlyph.FA_SOLID_USER_ALT).build());
+        actionHasAuthorization.setGraphic(IconBuilder.create(IconFontGlyph.FA_SOLID_LOCK).build());
+        actionClear.setGraphic(IconBuilder.create(IconFontGlyph.FA_SOLID_BAN).build());
         
         actionExecute.setDisable(true);
         actionQuery.setDisable(true);
@@ -150,7 +150,7 @@ public class Command {
         actionCurrentUser.setDisable(true);            
         actionHasAuthorization.setDisable(true);            
 
-        Shape s = IconBuilder.create(FontAwesome.FA_CIRCLE_O_NOTCH).build();
+        Shape s = IconBuilder.create(IconFontGlyph.FA_SOLID_CIRCLE_NOTCH).build();
         s.setCacheHint(CacheHint.ROTATE);
         tasksrt = new RotateTransition(Duration.millis(1000), s);
         tasksrt.setFromAngle(0);
